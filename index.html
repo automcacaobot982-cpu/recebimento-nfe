@@ -14,7 +14,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="BELT NF-e">
 
-    <!-- Leitor QR / Barcode otimizado -->
+    <!-- Leitor QR / Barcode -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
         :root {
@@ -62,10 +62,8 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
-            contain: content;
         }
 
-        /* Header Executivo */
         header {
             display: flex;
             align-items: center;
@@ -80,14 +78,9 @@
             letter-spacing: 0.05em;
             text-transform: uppercase;
             color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 6px;
         }
 
-        .brand-title span {
-            color: var(--accent);
-        }
+        .brand-title span { color: var(--accent); }
 
         .badge-online {
             font-size: 0.7rem;
@@ -99,39 +92,6 @@
             font-weight: 600;
         }
 
-        /* Informações do Usuário Logado */
-        .user-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--surface-card);
-            border: 1px solid var(--border);
-            padding: 10px 12px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-        }
-
-        .user-name {
-            font-weight: 600;
-            color: var(--text-primary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 220px;
-        }
-
-        .btn-logout {
-            background: none;
-            border: none;
-            color: var(--danger);
-            font-size: 0.75rem;
-            font-weight: 700;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-        }
-
-        /* Leitor de Câmera Leve */
         #reader {
             width: 100%;
             border-radius: 8px;
@@ -139,10 +99,8 @@
             border: 1px dashed var(--border);
             background: #000;
             min-height: 200px;
-            contain: strict;
         }
 
-        /* Formulários e Inputs */
         form {
             display: flex;
             flex-direction: column;
@@ -171,21 +129,14 @@
             border: 1px solid var(--border);
             border-radius: 8px;
             color: var(--text-primary);
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             outline: none;
-            transition: border-color 0.15s ease;
         }
 
         input:focus, select:focus {
             border-color: var(--border-focus);
         }
 
-        input::placeholder {
-            color: #475569;
-            font-size: 0.85rem;
-        }
-
-        /* Botões Otimizados */
         .btn {
             width: 100%;
             height: 48px;
@@ -200,30 +151,12 @@
             justify-content: center;
             align-items: center;
             gap: 8px;
-            will-change: transform;
         }
 
-        .btn-accent {
-            background-color: var(--accent);
-            color: #ffffff;
-        }
+        .btn-accent { background-color: var(--accent); color: #ffffff; }
+        .btn-secondary { background-color: #334155; color: var(--text-primary); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        .btn-accent:active {
-            background-color: var(--accent-hover);
-            transform: scale(0.99);
-        }
-
-        .btn-secondary {
-            background-color: #334155;
-            color: var(--text-primary);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Alertas Focados em Performance */
         .status-msg {
             padding: 12px;
             border-radius: 8px;
@@ -234,166 +167,75 @@
             line-height: 1.3;
         }
 
-        .status-success {
-            background-color: var(--success-bg);
-            color: var(--success);
-            border: 1px solid var(--success);
-        }
-
-        .status-error {
-            background-color: var(--danger-bg);
-            color: var(--danger);
-            border: 1px solid var(--danger);
-        }
-
-        #app-screen { display: none; flex-direction: column; gap: 14px; }
-        #login-screen { display: flex; flex-direction: column; gap: 14px; }
+        .status-success { background-color: var(--success-bg); color: var(--success); border: 1px solid var(--success); }
+        .status-error { background-color: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <!-- TELA DE LOGIN -->
-    <div id="login-screen">
-        <header>
-            <div class="brand-title"><span>BELT</span> LOGÍSTICA</div>
-            <div class="badge-online">v2.0</div>
-        </header>
+    <header>
+        <div class="brand-title">RECEBIMENTO <span>NF-e</span></div>
+        <div class="badge-online">SISTEMA ATIVO</div>
+    </header>
 
-        <form id="loginForm" onsubmit="fazerLogin(event)">
-            <div class="field-group">
-                <label for="usuarioSelect">Operador Responsável</label>
-                <select id="usuarioSelect" required>
-                    <option value="">Carregando usuários...</option>
-                </select>
-            </div>
+    <div id="reader"></div>
 
-            <div class="field-group">
-                <label for="senhaInput">Senha de Acesso</label>
-                <input type="password" id="senhaInput" placeholder="Sua senha corporativa" required autocomplete="current-password">
-            </div>
+    <button id="btn-scan" class="btn btn-secondary" onclick="toggleScanner()">📷 Ativar Câmera</button>
 
-            <button type="submit" id="btn-login" class="btn btn-accent">Acessar Sistema ➔</button>
-        </form>
-        <div id="loginStatusMsg" class="status-msg"></div>
-    </div>
-
-    <!-- TELA PRINCIPAL DE LEITURA -->
-    <div id="app-screen">
-        <header>
-            <div class="brand-title">RECEBIMENTO <span>NF-e</span></div>
-            <div class="badge-online">SISTEMA ATIVO</div>
-        </header>
-
-        <div class="user-bar">
-            <span class="user-name">👤 <strong id="nomeOperadorDisplay">---</strong></span>
-            <button class="btn-logout" onclick="fazerLogout()">Sair</button>
+    <form id="nfForm" onsubmit="enviarDados(event)">
+        <div class="field-group">
+            <label for="usuarioSelect">Operador Responsável</label>
+            <select id="usuarioSelect" required>
+                <option value="">-- SELECIONE SEU NOME --</option>
+            </select>
         </div>
 
-        <div id="reader"></div>
+        <div class="field-group">
+            <label for="chaveAcesso">Chave de Acesso (44 Dígitos)</label>
+            <input type="text" id="chaveAcesso" name="chaveAcesso" required maxlength="44" placeholder="Aguardando scanner ou digitação..." pattern="[0-9]{44}" inputmode="numeric">
+        </div>
 
-        <button id="btn-scan" class="btn btn-secondary" onclick="toggleScanner()">📷 Ativar Câmera</button>
+        <button type="submit" id="btn-submit" class="btn btn-accent">💾 Gravar Registro</button>
+    </form>
 
-        <form id="nfForm" onsubmit="enviarDados(event)">
-            <div class="field-group">
-                <label for="chaveAcesso">Chave de Acesso (44 Dígitos)</label>
-                <input type="text" id="chaveAcesso" name="chaveAcesso" required maxlength="44" placeholder="Aguardando scanner ou digitação..." pattern="[0-9]{44}" inputmode="numeric">
-            </div>
-
-            <button type="submit" id="btn-submit" class="btn btn-accent">💾 Gravar Registro</button>
-        </form>
-
-        <div id="statusMsg" class="status-msg"></div>
-    </div>
+    <div id="statusMsg" class="status-msg"></div>
 </div>
 
 <script>
-    // URL de Implantação do seu Google Apps Script (Web App)
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyMiNzjKirdSh1AYfid96c91_InfIyX-447rZwiPqwWAVxOz-oN5Hy5ret-xmhS9Zhd/exec";
+    // URL de integração com o Google Apps Script
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxqQUQIhZYJ441ue89OuEVYf1z_dvLXVH0Z8kDqadyAKCXSWev-qFfydgsQI3CIe318/exec";
+
+    // LISTA DE USUÁRIOS PERMITIDOS (Adicione novos nomes nesta lista no futuro)
+    const USUARIOS_PERMITIDOS = [
+        "MICKAEL KALIL WAGNER DE OLIVEIRA",
+        "ARTHUR PEREIRA WEBER",
+        "GABRIEL GONCALVES PERES",
+        "LUAN DE FRAGA OLIVEIRA",
+        "RIQUELMI MOREIRA DOS SANTOS"
+    ];
 
     let html5QrcodeScanner = null;
     let isScanning = false;
-    let usuarioAtual = "";
 
     window.onload = function() {
-        const usuarioSalvo = localStorage.getItem("operador_nfe");
-        if (usuarioSalvo) {
-            iniciarSessao(usuarioSalvo);
-        } else {
-            carregarUsuarios();
-        }
+        carregarListaUsuarios();
     };
 
-    function carregarUsuarios() {
-        if (WEB_APP_URL === "COLE_SUA_URL_DO_WEB_APP_AQUI") return;
-
-        fetch(WEB_APP_URL)
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === "success" && data.usuarios) {
-                    const select = document.getElementById("usuarioSelect");
-                    select.innerHTML = '<option value="">-- SELECIONE O USUÁRIO --</option>';
-                    data.usuarios.forEach(u => {
-                        const opt = document.createElement("option");
-                        opt.value = u.nome;
-                        opt.textContent = `${u.nome} (${u.email})`;
-                        select.appendChild(opt);
-                    });
-                }
-            })
-            .catch(() => {
-                showLoginStatus("Erro ao conectar no servidor de acessos.", false);
-            });
-    }
-
-    function fazerLogin(e) {
-        e.preventDefault();
-        const usuario = document.getElementById("usuarioSelect").value;
-        const senha = document.getElementById("senhaInput").value;
-        const btnLogin = document.getElementById("btn-login");
-
-        if (!usuario || !senha) return;
-
-        btnLogin.disabled = true;
-        btnLogin.innerText = "VALIDANDO...";
-
-        fetch(WEB_APP_URL, {
-            method: "POST",
-            body: JSON.stringify({ action: "login", usuario: usuario, senha: senha })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === "success") {
-                localStorage.setItem("operador_nfe", data.nome);
-                iniciarSessao(data.nome);
-            } else {
-                showLoginStatus(data.message || "Senha incorreta.", false);
-            }
-        })
-        .catch(() => {
-            showLoginStatus("Falha de comunicação com o servidor.", false);
-        })
-        .finally(() => {
-            btnLogin.disabled = false;
-            btnLogin.innerText = "ACESSAR SISTEMA ➔";
+    function carregarListaUsuarios() {
+        const select = document.getElementById("usuarioSelect");
+        USUARIOS_PERMITIDOS.forEach(nome => {
+            const opt = document.createElement("option");
+            opt.value = nome;
+            opt.textContent = nome;
+            select.appendChild(opt);
         });
-    }
 
-    function iniciarSessao(nome) {
-        usuarioAtual = nome;
-        document.getElementById("nomeOperadorDisplay").innerText = nome;
-        document.getElementById("login-screen").style.display = "none";
-        document.getElementById("app-screen").style.display = "flex";
-    }
-
-    function fazerLogout() {
-        if (isScanning) stopScanner();
-        localStorage.removeItem("operador_nfe");
-        usuarioAtual = "";
-        document.getElementById("app-screen").style.display = "none";
-        document.getElementById("login-screen").style.display = "flex";
-        document.getElementById("senhaInput").value = "";
-        carregarUsuarios();
+        // Lembra o último operador selecionado neste dispositivo
+        const ultimoUsuario = localStorage.getItem("ultimo_operador_nfe");
+        if (ultimoUsuario && USUARIOS_PERMITIDOS.includes(ultimoUsuario)) {
+            select.value = ultimoUsuario;
+        }
     }
 
     function toggleScanner() {
@@ -403,34 +245,21 @@
 
     function startScanner() {
         html5QrcodeScanner = new Html5Qrcode("reader");
-        
-        const config = { 
-            fps: 10, 
-            qrbox: { width: 260, height: 120 },
-            aspectRatio: 1.777778
-        };
+        const config = { fps: 10, qrbox: { width: 260, height: 120 }, aspectRatio: 1.777778 };
 
-        html5QrcodeScanner.start(
-            { facingMode: "environment" },
-            config,
-            onScanSuccess
-        ).then(() => {
+        html5QrcodeScanner.start({ facingMode: "environment" }, config, onScanSuccess)
+        .then(() => {
             isScanning = true;
-            const btn = document.getElementById("btn-scan");
-            btn.innerText = "⏹ Desativar Câmera";
-            btn.className = "btn btn-secondary";
-        }).catch(() => {
-            showStatus("Câmera indisponível ou permissão negada.", false);
-        });
+            document.getElementById("btn-scan").innerText = "⏹ Desativar Câmera";
+        })
+        .catch(() => showStatus("Câmera indisponível ou permissão negada.", false));
     }
 
     function stopScanner() {
         if (html5QrcodeScanner) {
             html5QrcodeScanner.stop().then(() => {
                 isScanning = false;
-                const btn = document.getElementById("btn-scan");
-                btn.innerText = "📷 Ativar Câmera";
-                btn.className = "btn btn-secondary";
+                document.getElementById("btn-scan").innerText = "📷 Ativar Câmera";
             });
         }
     }
@@ -448,36 +277,41 @@
         e.preventDefault();
 
         const btnSubmit = document.getElementById("btn-submit");
+        const usuarioSel = document.getElementById("usuarioSelect").value;
         const chaveVal = document.getElementById("chaveAcesso").value.replace(/\D/g, '');
+
+        if (!usuarioSel) {
+            showStatus("Por favor, selecione o operador responsável.", false);
+            return;
+        }
 
         if (chaveVal.length !== 44) {
             showStatus("A chave deve conter exatamente 44 dígitos.", false);
             return;
         }
 
+        localStorage.setItem("ultimo_operador_nfe", usuarioSel);
+
         btnSubmit.disabled = true;
         btnSubmit.innerText = "SALVANDO...";
 
         fetch(WEB_APP_URL, {
             method: "POST",
-            body: JSON.stringify({ 
-                action: "registrar",
+            body: JSON.stringify({
                 chaveAcesso: chaveVal,
-                usuario: usuarioAtual 
+                usuario: usuarioSel
             })
         })
         .then(res => res.json())
         .then(data => {
-            if (data.result === "success") {
+            if (data.status === "success") {
                 showStatus("✅ Registrado com sucesso!", true);
-                document.getElementById("nfForm").reset();
+                document.getElementById("chaveAcesso").value = "";
             } else {
                 showStatus("❌ Falha ao salvar: " + (data.error || "Tente novamente"), false);
             }
         })
-        .catch(() => {
-            showStatus("❌ Erro de rede ao gravar registro.", false);
-        })
+        .catch(() => showStatus("❌ Erro de comunicação com a planilha.", false))
         .finally(() => {
             btnSubmit.disabled = false;
             btnSubmit.innerText = "💾 GRAVAR REGISTRO";
@@ -492,20 +326,9 @@
         setTimeout(() => { el.style.display = "none"; }, 3500);
     }
 
-    function showLoginStatus(msg, isSuccess) {
-        const el = document.getElementById("loginStatusMsg");
-        el.innerText = msg;
-        el.className = "status-msg " + (isSuccess ? "status-success" : "status-error");
-        el.style.display = "block";
-        setTimeout(() => { el.style.display = "none"; }, 3500);
-    }
-
-    // Registro do Service Worker do PWA
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
-                .then(() => console.log('PWA Service Worker registrado!'))
-                .catch(err => console.error('Erro no SW:', err));
+            navigator.serviceWorker.register('./sw.js').catch(err => console.error('SW Error:', err));
         });
     }
 </script>
