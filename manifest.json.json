@@ -1,0 +1,18 @@
+{
+  "short_name": "BELT NF-e",
+  "name": "BELT Logística - Recebimento NF-e",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512 192x192 128x128",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "display": "standalone",
+  "orientation": "portrait",
+  "lang": "pt-BR"
+}
