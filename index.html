@@ -178,11 +178,12 @@
             overflow: hidden;
             border: 1px dashed var(--border);
             background: #000;
-            min-height: 220px;
+            min-height: 200px;
         }
 
         #reader video {
             width: 100% !important;
+            height: auto !important;
             object-fit: cover;
         }
 
@@ -239,7 +240,6 @@
             cursor: pointer;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
             align-items: center;
             gap: 8px;
             transition: opacity 0.2s ease, transform 0.1s ease;
@@ -286,7 +286,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Ajustes automáticos no modo paisagem */
         @media screen and (orientation: landscape) {
             body { padding: 4px; }
             .app-container { max-width: 100%; padding: 12px; }
@@ -349,10 +348,8 @@
 </div>
 
 <script>
-    // URL de integração com o Google Apps Script
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxqQUQIhZYJ441ue89OuEVYf1z_dvLXVH0Z8kDqadyAKCXSWev-qFfydgsQI3CIe318/exec";
 
-    // LISTA DE USUÁRIOS PERMITIDOS
     const USUARIOS_PERMITIDOS = [
         "MICKAEL KALIL WAGNER DE OLIVEIRA",
         "ARTHUR PEREIRA WEBER",
@@ -367,7 +364,6 @@
     let audioCtx = null;
     let operadorAtual = "";
 
-    // Filtra para aceitar apenas caracteres numéricos no campo
     document.getElementById('chaveAcesso').addEventListener('input', function() {
         this.value = this.value.replace(/\D/g, '');
     });
@@ -411,7 +407,6 @@
         }
     }
 
-    // Navegação entre Telas
     function avancarParaEtapa2(e) {
         e.preventDefault();
         const select = document.getElementById("usuarioSelect");
@@ -427,7 +422,7 @@
         document.getElementById("step1").classList.remove("active");
         document.getElementById("step2").classList.add("active");
 
-        startScanner();
+        setTimeout(() => { startScanner(); }, 300);
     }
 
     function voltarParaEtapa1() {
@@ -442,55 +437,65 @@
         else startScanner();
     }
 
-    function startScanner() {
+    async function startScanner() {
         prepararAudio();
 
-        // Configuração de vídeo para forçar alta definição e foco na barras finas
-        const cameraConfig = {
-            facingMode: "environment",
-            width: { min: 640, ideal: 1920, max: 2560 },
-            height: { min: 480, ideal: 1080, max: 1440 }
-        };
+        if (html5QrcodeScanner) {
+            try { await html5QrcodeScanner.stop(); } catch(e) {}
+            try { await html5QrcodeScanner.clear(); } catch(e) {}
+        }
 
         html5QrcodeScanner = new Html5Qrcode("reader", { verbose: false });
 
-        // Área de busca dinâmica que ocupa 85% da largura da tela do celular
         const qrboxFunction = function(viewfinderWidth, viewfinderHeight) {
-            let width = Math.floor(viewfinderWidth * 0.88);
-            let height = Math.floor(width * 0.35); // formato retangular proporcional
+            let width = Math.floor(viewfinderWidth * 0.85);
+            let height = Math.floor(width * 0.4);
             return { width: width, height: height };
         };
 
         const config = { 
-            fps: 20, // 20 frames por segundo para leitura mais rápida
-            qrbox: qrboxFunction,
-            aspectRatio: 1.777778,
-            disableFlip: true
+            fps: 15,
+            qrbox: qrboxFunction
         };
 
-        html5QrcodeScanner.start(cameraConfig, config, onScanSuccess)
+        // Solicitação direta de câmera traseira sem travar resolução específica
+        html5QrcodeScanner.start(
+            { facingMode: { exact: "environment" } }, 
+            config, 
+            onScanSuccess
+        )
         .then(() => {
             isScanning = true;
             document.getElementById("btn-scan").innerText = "⏹ Desativar Câmera";
         })
         .catch(() => {
-            // Fallback caso a câmera do aparelho não suporte as resoluções ideais
-            html5QrcodeScanner.start({ facingMode: "environment" }, config, onScanSuccess)
+            // Fallback para seleção de câmera genérica se exact falhar
+            html5QrcodeScanner.start(
+                { facingMode: "environment" }, 
+                config, 
+                onScanSuccess
+            )
             .then(() => {
                 isScanning = true;
                 document.getElementById("btn-scan").innerText = "⏹ Desativar Câmera";
             })
-            .catch(() => showStatus("Câmera indisponível ou permissão negada.", "error"));
+            .catch(err => {
+                showStatus("Permissão de câmera negada ou câmera em uso por outro app.", "error");
+            });
         });
     }
 
     function stopScanner() {
         if (html5QrcodeScanner) {
             html5QrcodeScanner.stop().then(() => {
+                html5QrcodeScanner.clear();
                 isScanning = false;
                 isTorchOn = false;
                 document.getElementById("btn-scan").innerText = "📷 Ativar Câmera";
-            }).catch(() => {});
+            }).catch(() => {
+                isScanning = false;
+                document.getElementById("btn-scan").innerText = "📷 Ativar Câmera";
+            });
         }
     }
 
@@ -643,11 +648,10 @@
         } catch (e) {}
     }
 
-    // Registra o Service Worker
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             const swCode = `
-                const CACHE = 'belt-nfe-v4';
+                const CACHE = 'belt-nfe-v5';
                 self.addEventListener('install', e => {
                     e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./index.html', './'])).then(() => self.skipWaiting()));
                 });
