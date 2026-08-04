@@ -348,7 +348,7 @@
 </div>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxqQUQIhZYJ441ue89OuEVYf1z_dvLXVH0Z8kDqadyAKCXSWev-qFfydgsQI3CIe318/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby9OO-Z46Ldxyd87XdvZexzRfXedf_XcxbuOzAHzYL0hpZy9m4cCy3CftzTDABJDlQ7xg/exec";
 
     const USUARIOS_PERMITIDOS = [
         "MICKAEL KALIL WAGNER DE OLIVEIRA",
@@ -644,7 +644,7 @@
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             const swCode = `
-                const CACHE = 'belt-nfe-v6';
+                const CACHE = 'belt-nfe-v7';
                 self.addEventListener('install', e => {
                     e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./index.html', './'])).then(() => self.skipWaiting()));
                 });
