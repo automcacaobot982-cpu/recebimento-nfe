@@ -3,35 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA DE RECEBIMENTO | BELT</title>
-    
-    <!-- PWA & Tags de Aplicativo Nativo -->
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/svg+xml" href="icon.svg">
-    <meta name="theme-color" content="#0f172a">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="BELT NF-e">
+    <title>Registro de Pedidos Retirados</title>
 
-    <!-- Leitor QR / Barcode -->
+    <!-- ===== Configurações do App (PWA) e Favicon / WebApp ===== -->
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Retirada">
+
+    <!-- Ícone dinâmico gerado via Data URI SVG para dispensar imagens externas de ícone inicial -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232563eb'><path d='M3 7V5a2 2 0 0 1 2-2h2'></path><path d='M17 3h2a2 2 0 0 1 2 2v2'></path><path d='M21 17v2a2 2 0 0 1-2 2h-2'></path><path d='M7 21H5a2 2 0 0 1-2-2v-2'></path><path d='M7 8v8M10.5 8v8M14 8v8M17 8v8'></path></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232563eb'><path d='M3 7V5a2 2 0 0 1 2-2h2'></path><path d='M17 3h2a2 2 0 0 1 2 2v2'></path><path d='M21 17v2a2 2 0 0 1-2 2h-2'></path><path d='M7 21H5a2 2 0 0 1-2-2v-2'></path><path d='M7 8v8M10.5 8v8M14 8v8M17 8v8'></path></svg>">
+
+    <!-- Manifest embutido inline dinamicamente via JS (Web App Manifest) -->
+    <script>
+        const manifestData = {
+            "name": "Registro de Retirada",
+            "short_name": "Retirada",
+            "description": "Registro de pedidos retirados",
+            "start_url": "./",
+            "display": "standalone",
+            "orientation": "portrait",
+            "background_color": "#f8fafc",
+            "theme_color": "#2563eb",
+            "lang": "pt-BR"
+        };
+        const stringManifest = JSON.stringify(manifestData);
+        const blobManifest = new Blob([stringManifest], {type: 'application/json'});
+        const manifestURL = URL.createObjectURL(blobManifest);
+        const link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = manifestURL;
+        document.head.appendChild(link);
+    </script>
+
+    <!-- Leitor de código de barras HTML5-QRCode via CDN -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
     <style>
         :root {
-            --bg-body: #0f172a;
-            --surface: #1e293b;
-            --surface-card: #0f172a;
-            --border: #334155;
-            --border-focus: #38bdf8;
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --accent: #0284c7;
-            --accent-hover: #0369a1;
-            --success: #10b981;
-            --success-bg: rgba(16, 185, 129, 0.12);
-            --danger: #ef4444;
-            --danger-bg: rgba(239, 68, 68, 0.12);
-            --radius: 10px;
+            --primary-color: #0f172a;
+            --accent-color: #2563eb;
+            --accent-hover: #1d4ed8;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #334155;
+            --success-color: #16a34a;
+            --error-color: #dc2626;
+            --border-color: #e2e8f0;
         }
 
         * {
@@ -43,294 +62,618 @@
         }
 
         body {
-            background-color: var(--bg-body);
-            color: var(--text-primary);
+            background-color: var(--bg-color);
+            color: var(--text-color);
             display: flex;
             justify-content: center;
-            align-items: flex-start;
+            align-items: center;
             min-height: 100vh;
-            padding: 12px;
+            padding: 20px;
         }
 
-        .app-container {
+        .container {
+            background-color: var(--card-bg);
+            padding: 32px 24px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
             width: 100%;
             max-width: 440px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
+            border: 1px solid var(--border-color);
+            position: relative;
         }
 
-        header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 12px;
-        }
-
-        .brand-title {
-            font-size: 0.95rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            color: var(--text-primary);
-        }
-
-        .brand-title span { color: var(--accent); }
-
-        .badge-online {
-            font-size: 0.7rem;
-            background: rgba(56, 189, 248, 0.1);
-            color: var(--border-focus);
-            padding: 3px 8px;
+        .offline-badge {
+            display: none;
+            background-color: #fef3c7;
+            color: #d97706;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 12px;
             border-radius: 20px;
-            border: 1px solid rgba(56, 189, 248, 0.3);
+            text-align: center;
+            margin-bottom: 16px;
+            border: 1px solid #fde68a;
+        }
+
+        .offline-badge.visible {
+            display: block;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            color: var(--primary-color);
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
             font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary-color);
         }
 
-        #reader {
+        input[type="text"] {
             width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
-            overflow: hidden;
-            border: 1px dashed var(--border);
-            background: #000;
-            min-height: 200px;
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .field-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .field-group label {
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            color: var(--text-secondary);
-        }
-
-        input, select {
-            width: 100%;
-            height: 46px;
-            padding: 0 12px;
-            background-color: var(--surface-card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-size: 0.85rem;
+            font-size: 16px;
+            transition: all 0.2s ease;
             outline: none;
+            background-color: #f8fafc;
         }
 
-        input:focus, select:focus {
-            border-color: var(--border-focus);
+        input[type="text"]:focus {
+            border-color: var(--accent-color);
+            background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
         }
 
-        .btn {
+        button {
             width: 100%;
-            height: 48px;
+            padding: 14px;
+            background-color: var(--accent-color);
+            color: white;
             border: none;
             border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 700;
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 8px;
         }
 
-        .btn-accent { background-color: var(--accent); color: #ffffff; }
-        .btn-secondary { background-color: #334155; color: var(--text-primary); }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .status-msg {
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-align: center;
-            display: none;
-            line-height: 1.3;
+        button:hover {
+            background-color: var(--accent-hover);
         }
 
-        .status-success { background-color: var(--success-bg); color: var(--success); border: 1px solid var(--success); }
-        .status-error { background-color: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); }
+        button:active {
+            transform: scale(0.99);
+        }
+
+        button:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            margin-top: 12px;
+            background-color: #ffffff;
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: #eff6ff;
+        }
+
+        .btn-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .status-msg {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            text-align: center;
+            display: none;
+            font-weight: 500;
+            word-break: break-word;
+        }
+
+        .status-msg.success {
+            display: block;
+            background-color: #dcfce7;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }
+
+        .status-msg.error {
+            display: block;
+            background-color: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+
+        .status-msg.warning {
+            display: block;
+            background-color: #fef3c7;
+            color: #b45309;
+            border: 1px solid #fde68a;
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #ffffff;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ===== Leitor de código de barras ===== */
+        .scanner-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background-color: rgba(15, 23, 42, 0.92);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+
+        .scanner-overlay.active {
+            display: flex;
+        }
+
+        .scanner-box {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 440px;
+            padding: 20px;
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
+        }
+
+        .scanner-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .scanner-header h2 {
+            font-size: 18px;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .btn-close {
+            width: auto;
+            background: none;
+            border: none;
+            color: #64748b;
+            font-size: 28px;
+            line-height: 1;
+            padding: 0 4px;
+            cursor: pointer;
+        }
+
+        .btn-close:hover {
+            color: var(--primary-color);
+        }
+
+        #reader {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            background-color: #000000;
+            min-height: 240px;
+        }
+
+        #reader video {
+            width: 100% !important;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+
+        .scanner-hint {
+            text-align: center;
+            font-size: 13px;
+            color: #64748b;
+            margin: 14px 0;
+        }
+
+        .btn-cancel {
+            background-color: #f1f5f9;
+            color: var(--primary-color);
+        }
+
+        .btn-cancel:hover {
+            background-color: #e2e8f0;
+        }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <header>
-        <div class="brand-title">RECEBIMENTO <span>NF-e</span></div>
-        <div class="badge-online">SISTEMA ATIVO</div>
-    </header>
-
-    <div id="reader"></div>
-
-    <button id="btn-scan" class="btn btn-secondary" onclick="toggleScanner()">📷 Ativar Câmera</button>
-
-    <form id="nfForm" onsubmit="enviarDados(event)">
-        <div class="field-group">
-            <label for="usuarioSelect">Operador Responsável</label>
-            <select id="usuarioSelect" required>
-                <option value="">-- SELECIONE SEU NOME --</option>
-            </select>
+    <div class="container">
+        <div id="offlineBadge" class="offline-badge">
+            ⚠️ Você está Offline (Pedidos serão salvos no aparelho)
         </div>
 
-        <div class="field-group">
-            <label for="chaveAcesso">Chave de Acesso (44 Dígitos)</label>
-            <input type="text" id="chaveAcesso" name="chaveAcesso" required maxlength="44" placeholder="Aguardando scanner ou digitação..." pattern="[0-9]{44}" inputmode="numeric">
+        <div class="header">
+            <h1>Registro de Retirada</h1>
+            <p>Digite ou escaneie o número do pedido para salvar na planilha</p>
         </div>
 
-        <button type="submit" id="btn-submit" class="btn btn-accent">💾 Gravar Registro</button>
-    </form>
+        <form id="orderForm">
+            <div class="form-group">
+                <label for="numeroPedido">Número do Pedido</label>
+                <input type="text" id="numeroPedido" placeholder="Ex: 10452" required autocomplete="off" inputmode="numeric" pattern="[0-9]*">
+            </div>
 
-    <div id="statusMsg" class="status-msg"></div>
-</div>
+            <button type="submit" id="btnRegistrar">
+                <span id="btnText">Registrar</span>
+            </button>
 
-<script>
-    // URL de integração com o Google Apps Script
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxqQUQIhZYJ441ue89OuEVYf1z_dvLXVH0Z8kDqadyAKCXSWev-qFfydgsQI3CIe318/exec";
+            <button type="button" id="btnEscanear" class="btn-secondary">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
+                    <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
+                    <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
+                    <path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
+                    <path d="M7 8v8M10.5 8v8M14 8v8M17 8v8"></path>
+                </svg>
+                <span>Escanear código de barras</span>
+            </button>
+        </form>
 
-    // LISTA DE USUÁRIOS PERMITIDOS (Adicione novos nomes nesta lista no futuro)
-    const USUARIOS_PERMITIDOS = [
-        "MICKAEL KALIL WAGNER DE OLIVEIRA",
-        "ARTHUR PEREIRA WEBER",
-        "GABRIEL GONCALVES PERES",
-        "LUAN DE FRAGA OLIVEIRA",
-        "RIQUELMI MOREIRA DOS SANTOS"
-    ];
+        <div id="statusMsg" class="status-msg"></div>
+    </div>
 
-    let html5QrcodeScanner = null;
-    let isScanning = false;
+    <!-- Interface do Leitor de Código de Barras -->
+    <div id="scannerOverlay" class="scanner-overlay">
+        <div class="scanner-box">
+            <div class="scanner-header">
+                <h2>Escanear Código</h2>
+                <button type="button" id="btnFecharScanner" class="btn-close" aria-label="Fechar">&times;</button>
+            </div>
+            <div id="reader"></div>
+            <p class="scanner-hint">Aponte a câmera para o código de barras do pedido</p>
+            <button type="button" id="btnCancelarScanner" class="btn-cancel">Cancelar</button>
+        </div>
+    </div>
 
-    window.onload = function() {
-        carregarListaUsuarios();
-    };
+    <script>
+        // Configuração da URL do Google Apps Script
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9a_KCboE6rlylIU3hC9oKyHUt86KVXhZWM1oOsvKiRru-iSMswJBVKxPmjVs4WfpW/exec';
 
-    function carregarListaUsuarios() {
-        const select = document.getElementById("usuarioSelect");
-        USUARIOS_PERMITIDOS.forEach(nome => {
-            const opt = document.createElement("option");
-            opt.value = nome;
-            opt.textContent = nome;
-            select.appendChild(opt);
+        const form = document.getElementById('orderForm');
+        const inputPedido = document.getElementById('numeroPedido');
+        const btnRegistrar = document.getElementById('btnRegistrar');
+        const btnText = document.getElementById('btnText');
+        const statusMsg = document.getElementById('statusMsg');
+        const offlineBadge = document.getElementById('offlineBadge');
+
+        // Impede digitação de caracteres não numéricos
+        inputPedido.addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, '');
         });
 
-        // Lembra o último operador selecionado neste dispositivo
-        const ultimoUsuario = localStorage.getItem("ultimo_operador_nfe");
-        if (ultimoUsuario && USUARIOS_PERMITIDOS.includes(ultimoUsuario)) {
-            select.value = ultimoUsuario;
+        // Monitoramento do estado da conexão
+        function atualizarStatusConexao() {
+            if (!navigator.onLine) {
+                offlineBadge.classList.add('visible');
+            } else {
+                offlineBadge.classList.remove('visible');
+                sincronizarFilaOffline();
+            }
         }
-    }
+        window.addEventListener('online', atualizarStatusConexao);
+        window.addEventListener('offline', atualizarStatusConexao);
+        atualizarStatusConexao();
 
-    function toggleScanner() {
-        if (isScanning) stopScanner();
-        else startScanner();
-    }
+        // Submissão do Formulário
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
 
-    function startScanner() {
-        html5QrcodeScanner = new Html5Qrcode("reader");
-        const config = { fps: 10, qrbox: { width: 260, height: 120 }, aspectRatio: 1.777778 };
+            const pedido = inputPedido.value.trim();
+            if (!pedido) return;
 
-        html5QrcodeScanner.start({ facingMode: "environment" }, config, onScanSuccess)
-        .then(() => {
-            isScanning = true;
-            document.getElementById("btn-scan").innerText = "⏹ Desativar Câmera";
-        })
-        .catch(() => showStatus("Câmera indisponível ou permissão negada.", false));
-    }
+            setLoading(true);
+            hideStatus();
 
-    function stopScanner() {
-        if (html5QrcodeScanner) {
-            html5QrcodeScanner.stop().then(() => {
-                isScanning = false;
-                document.getElementById("btn-scan").innerText = "📷 Ativar Câmera";
+            if (!navigator.onLine) {
+                salvarFilaOffline(pedido);
+                showStatus('Modo Offline: Pedido salvo localmente. Ele será enviado automaticamente assim que a conexão retornar.', 'warning');
+                inputPedido.value = '';
+                setLoading(false);
+                return;
+            }
+
+            try {
+                await enviarPedidoParaServidor(pedido);
+                showStatus('Pedido registrado com sucesso!', 'success');
+                inputPedido.value = '';
+                inputPedido.focus();
+            } catch (error) {
+                console.error('Erro de envio:', error);
+                salvarFilaOffline(pedido);
+                showStatus('Falha de rede ao conectar com a planilha. Pedido salvo em fila offline.', 'warning');
+                inputPedido.value = '';
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        async function enviarPedidoParaServidor(numeroPedido) {
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ numeroPedido: numeroPedido })
+            });
+
+            const result = await response.json();
+            if (result.status !== 'success') {
+                throw new Error(result.message || 'Erro ao registrar pedido.');
+            }
+            return result;
+        }
+
+        // Gerenciamento de Fila Offline (LocalStorage)
+        function salvarFilaOffline(pedido) {
+            const fila = JSON.parse(localStorage.getItem('pedidos_pendentes') || '[]');
+            fila.push({ pedido: pedido, timestamp: new Date().toISOString() });
+            localStorage.setItem('pedidos_pendentes', JSON.stringify(fila));
+        }
+
+        async function sincronizarFilaOffline() {
+            const fila = JSON.parse(localStorage.getItem('pedidos_pendentes') || '[]');
+            if (fila.length === 0) return;
+
+            showStatus(`Conexão restabelecida! Sincronizando ${fila.length} pedido(s) pendente(s)...`, 'warning');
+
+            const naoEnviados = [];
+            for (const item of fila) {
+                try {
+                    await enviarPedidoParaServidor(item.pedido);
+                } catch (e) {
+                    naoEnviados.push(item);
+                }
+            }
+
+            localStorage.setItem('pedidos_pendentes', JSON.stringify(naoEnviados));
+
+            if (naoEnviados.length === 0) {
+                showStatus('Todos os pedidos pendentes foram sincronizados com sucesso!', 'success');
+            } else {
+                showStatus(`Sincronização parcial: ${naoEnviados.length} pedido(s) ainda pendentes.`, 'warning');
+            }
+        }
+
+        function setLoading(isLoading) {
+            btnRegistrar.disabled = isLoading;
+            if (isLoading) {
+                btnText.innerHTML = '<span class="spinner"></span> Registrando...';
+            } else {
+                btnText.textContent = 'Registrar';
+            }
+        }
+
+        function showStatus(message, type) {
+            statusMsg.textContent = message;
+            statusMsg.className = `status-msg ${type}`;
+            statusMsg.style.display = 'block';
+        }
+
+        function hideStatus() {
+            statusMsg.style.display = 'none';
+            statusMsg.className = 'status-msg';
+        }
+
+        // ===================================================================
+        // LEITOR DE CÓDIGO DE BARRAS VIA CÂMERA
+        // ===================================================================
+        const btnEscanear = document.getElementById('btnEscanear');
+        const scannerOverlay = document.getElementById('scannerOverlay');
+        const btnFecharScanner = document.getElementById('btnFecharScanner');
+        const btnCancelarScanner = document.getElementById('btnCancelarScanner');
+
+        let html5QrCode = null;
+        let scannerCancelado = false;
+        let leituraProcessada = false;
+        let audioCtx = null;
+
+        btnEscanear.addEventListener('click', abrirScanner);
+        btnFecharScanner.addEventListener('click', fecharScanner);
+        btnCancelarScanner.addEventListener('click', fecharScanner);
+        scannerOverlay.addEventListener('click', function (e) {
+            if (e.target === scannerOverlay) fecharScanner();
+        });
+
+        async function abrirScanner() {
+            if (typeof Html5Qrcode === 'undefined') {
+                showStatus('O leitor de código não pôde ser inicializado. Verifique a conexão.', 'error');
+                return;
+            }
+
+            prepararAudio();
+            hideStatus();
+            leituraProcessada = false;
+            scannerCancelado = false;
+            scannerOverlay.classList.add('active');
+
+            const formatos = [
+                Html5QrcodeSupportedFormats.CODE_128,
+                Html5QrcodeSupportedFormats.CODE_39,
+                Html5QrcodeSupportedFormats.CODE_93,
+                Html5QrcodeSupportedFormats.ITF,
+                Html5QrcodeSupportedFormats.CODABAR,
+                Html5QrcodeSupportedFormats.EAN_13,
+                Html5QrcodeSupportedFormats.EAN_8,
+                Html5QrcodeSupportedFormats.UPC_A,
+                Html5QrcodeSupportedFormats.UPC_E,
+                Html5QrcodeSupportedFormats.QR_CODE
+            ];
+
+            html5QrCode = new Html5Qrcode('reader', { formatsToSupport: formatos, verbose: false });
+
+            const config = {
+                fps: 10,
+                qrbox: function (larguraVisor, alturaVisor) {
+                    const menorLado = Math.min(larguraVisor, alturaVisor);
+                    const largura = Math.floor(menorLado * 0.85);
+                    const altura = Math.floor(largura * 0.55);
+                    return { width: largura, height: altura };
+                }
+            };
+
+            try {
+                await html5QrCode.start(
+                    { facingMode: 'environment' },
+                    config,
+                    aoLerCodigo,
+                    function () {}
+                );
+
+                if (scannerCancelado) {
+                    await pararScanner();
+                }
+            } catch (err) {
+                console.error('Erro de Câmera:', err);
+                scannerOverlay.classList.remove('active');
+
+                let msg = 'Não foi possível acessar a câmera.';
+                if (err && (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')) {
+                    msg = 'Permissão da câmera negada. Autorize o acesso no seu navegador.';
+                } else if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+                    msg = 'A câmera exige conexão segura (HTTPS).';
+                }
+                showStatus(msg, 'error');
+                await pararScanner();
+            }
+        }
+
+        function aoLerCodigo(textoLido) {
+            if (leituraProcessada) return;
+            leituraProcessada = true;
+
+            tocarBip();
+            if (navigator.vibrate) navigator.vibrate(200);
+
+            const somenteNumeros = textoLido.replace(/\D/g, '');
+            inputPedido.value = somenteNumeros || textoLido.trim();
+
+            fecharScanner();
+            showStatus('Código lido: ' + inputPedido.value + '. Clique em Registrar para salvar.', 'success');
+        }
+
+        async function fecharScanner() {
+            scannerCancelado = true;
+            scannerOverlay.classList.remove('active');
+            await pararScanner();
+        }
+
+        async function pararScanner() {
+            if (html5QrCode) {
+                try { await html5QrCode.stop(); } catch (e) {}
+                try { html5QrCode.clear(); } catch (e) {}
+            }
+            html5QrCode = null;
+        }
+
+        function prepararAudio() {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+            } catch (e) {}
+        }
+
+        function tocarBip() {
+            try {
+                if (!audioCtx) return;
+                const oscilador = audioCtx.createOscillator();
+                const ganho = audioCtx.createGain();
+                oscilador.connect(ganho);
+                ganho.connect(audioCtx.destination);
+                oscilador.type = 'sine';
+                oscilador.frequency.value = 880;
+                ganho.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                oscilador.start();
+                oscilador.stop(audioCtx.currentTime + 0.15);
+            } catch (e) {}
+        }
+
+        // ===================================================================
+        // REGISTRO DE SERVICE WORKER DINÂMICO (SUPORTE OFFLINE PWA)
+        // ===================================================================
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                const swCode = `
+                    const CACHE = 'retirada-app-v1';
+                    self.addEventListener('install', e => {
+                        e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./'])).then(() => self.skipWaiting()));
+                    });
+                    self.addEventListener('activate', e => {
+                        e.waitUntil(caches.keys().then(keys => Promise.all(
+                            keys.filter(k => k !== CACHE).map(k => caches.delete(k))
+                        )).then(() => self.clients.claim()));
+                    });
+                    self.addEventListener('fetch', e => {
+                        if (e.request.method !== 'GET') return;
+                        const url = new URL(e.request.url);
+                        if (url.hostname.includes('script.google.com') || url.hostname.includes('googleusercontent.com')) return;
+                        e.respondWith(
+                            caches.match(e.request).then(cached => {
+                                const networked = fetch(e.request).then(res => {
+                                    const cacheCopy = res.clone();
+                                    caches.open(CACHE).then(c => c.put(e.request, cacheCopy));
+                                    return res;
+                                }).catch(() => cached);
+                                return cached || networked;
+                            })
+                        );
+                    });
+                `;
+                const blob = new Blob([swCode], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(blob);
+                navigator.serviceWorker.register(swUrl).catch(err => console.log('SW ERRO:', err));
             });
         }
-    }
-
-    function onScanSuccess(decodedText) {
-        let cleanText = decodedText.replace(/\D/g, '');
-        if (cleanText.length === 44) {
-            document.getElementById("chaveAcesso").value = cleanText;
-            stopScanner();
-            showStatus("Chave lida com sucesso!", true);
-        }
-    }
-
-    function enviarDados(e) {
-        e.preventDefault();
-
-        const btnSubmit = document.getElementById("btn-submit");
-        const usuarioSel = document.getElementById("usuarioSelect").value;
-        const chaveVal = document.getElementById("chaveAcesso").value.replace(/\D/g, '');
-
-        if (!usuarioSel) {
-            showStatus("Por favor, selecione o operador responsável.", false);
-            return;
-        }
-
-        if (chaveVal.length !== 44) {
-            showStatus("A chave deve conter exatamente 44 dígitos.", false);
-            return;
-        }
-
-        localStorage.setItem("ultimo_operador_nfe", usuarioSel);
-
-        btnSubmit.disabled = true;
-        btnSubmit.innerText = "SALVANDO...";
-
-        fetch(WEB_APP_URL, {
-            method: "POST",
-            body: JSON.stringify({
-                chaveAcesso: chaveVal,
-                usuario: usuarioSel
-            })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === "success") {
-                showStatus("✅ Registrado com sucesso!", true);
-                document.getElementById("chaveAcesso").value = "";
-            } else {
-                showStatus("❌ Falha ao salvar: " + (data.error || "Tente novamente"), false);
-            }
-        })
-        .catch(() => showStatus("❌ Erro de comunicação com a planilha.", false))
-        .finally(() => {
-            btnSubmit.disabled = false;
-            btnSubmit.innerText = "💾 GRAVAR REGISTRO";
-        });
-    }
-
-    function showStatus(msg, isSuccess) {
-        const el = document.getElementById("statusMsg");
-        el.innerText = msg;
-        el.className = "status-msg " + (isSuccess ? "status-success" : "status-error");
-        el.style.display = "block";
-        setTimeout(() => { el.style.display = "none"; }, 3500);
-    }
-
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js').catch(err => console.error('SW Error:', err));
-        });
-    }
-</script>
+    </script>
 </body>
 </html>
