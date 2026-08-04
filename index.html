@@ -178,12 +178,17 @@
             overflow: hidden;
             border: 1px dashed var(--border);
             background: #000;
-            min-height: 180px;
+            min-height: 220px;
         }
 
         #reader video {
             width: 100% !important;
             object-fit: cover;
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 8px;
         }
 
         form {
@@ -234,6 +239,7 @@
             cursor: pointer;
             display: flex;
             justify-content: center;
+            align-items: flex-start;
             align-items: center;
             gap: 8px;
             transition: opacity 0.2s ease, transform 0.1s ease;
@@ -246,6 +252,7 @@
         .btn-accent { background-color: var(--accent); color: #ffffff; }
         .btn-accent:hover { background-color: var(--accent-hover); }
         .btn-secondary { background-color: #334155; color: var(--text-primary); }
+        .btn-torch { background-color: #475569; color: #fbbf24; width: 30%; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .status-msg {
@@ -279,11 +286,11 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Ajustes automáticos quando o celular for virado na horizontal */
+        /* Ajustes automáticos no modo paisagem */
         @media screen and (orientation: landscape) {
             body { padding: 4px; }
             .app-container { max-width: 100%; padding: 12px; }
-            #reader { min-height: 140px; }
+            #reader { min-height: 160px; }
         }
     </style>
 </head>
@@ -321,7 +328,10 @@
 
         <div id="reader"></div>
 
-        <button id="btn-scan" class="btn btn-secondary" onclick="toggleScanner()">📷 Desativar Câmera</button>
+        <div class="camera-controls">
+            <button id="btn-scan" class="btn btn-secondary" onclick="toggleScanner()" style="flex: 1;">⏹ Desativar Câmera</button>
+            <button id="btn-torch" class="btn btn-torch" onclick="alternarLanterna()" title="Ligar Lanterna">🔦</button>
+        </div>
 
         <form id="nfForm" onsubmit="enviarDados(event)">
             <div class="field-group">
@@ -353,6 +363,7 @@
 
     let html5QrcodeScanner = null;
     let isScanning = false;
+    let isTorchOn = false;
     let audioCtx = null;
     let operadorAtual = "";
 
@@ -433,35 +444,64 @@
 
     function startScanner() {
         prepararAudio();
-        const formatos = [
-            Html5QrcodeSupportedFormats.CODE_128,
-            Html5QrcodeSupportedFormats.EAN_13,
-            Html5QrcodeSupportedFormats.QR_CODE
-        ];
 
-        html5QrcodeScanner = new Html5Qrcode("reader", { formatsToSupport: formatos, verbose: false });
-        
-        // Área de leitura configurada em formato largo (320x100) para chaves de 44 dígitos
-        const config = { 
-            fps: 15, 
-            qrbox: { width: 320, height: 100 }, 
-            aspectRatio: 1.777778 
+        // Configuração de vídeo para forçar alta definição e foco na barras finas
+        const cameraConfig = {
+            facingMode: "environment",
+            width: { min: 640, ideal: 1920, max: 2560 },
+            height: { min: 480, ideal: 1080, max: 1440 }
         };
 
-        html5QrcodeScanner.start({ facingMode: "environment" }, config, onScanSuccess)
+        html5QrcodeScanner = new Html5Qrcode("reader", { verbose: false });
+
+        // Área de busca dinâmica que ocupa 85% da largura da tela do celular
+        const qrboxFunction = function(viewfinderWidth, viewfinderHeight) {
+            let width = Math.floor(viewfinderWidth * 0.88);
+            let height = Math.floor(width * 0.35); // formato retangular proporcional
+            return { width: width, height: height };
+        };
+
+        const config = { 
+            fps: 20, // 20 frames por segundo para leitura mais rápida
+            qrbox: qrboxFunction,
+            aspectRatio: 1.777778,
+            disableFlip: true
+        };
+
+        html5QrcodeScanner.start(cameraConfig, config, onScanSuccess)
         .then(() => {
             isScanning = true;
             document.getElementById("btn-scan").innerText = "⏹ Desativar Câmera";
         })
-        .catch(() => showStatus("Câmera indisponível ou permissão negada.", "error"));
+        .catch(() => {
+            // Fallback caso a câmera do aparelho não suporte as resoluções ideais
+            html5QrcodeScanner.start({ facingMode: "environment" }, config, onScanSuccess)
+            .then(() => {
+                isScanning = true;
+                document.getElementById("btn-scan").innerText = "⏹ Desativar Câmera";
+            })
+            .catch(() => showStatus("Câmera indisponível ou permissão negada.", "error"));
+        });
     }
 
     function stopScanner() {
         if (html5QrcodeScanner) {
             html5QrcodeScanner.stop().then(() => {
                 isScanning = false;
+                isTorchOn = false;
                 document.getElementById("btn-scan").innerText = "📷 Ativar Câmera";
             }).catch(() => {});
+        }
+    }
+
+    function alternarLanterna() {
+        if (html5QrcodeScanner && isScanning) {
+            isTorchOn = !isTorchOn;
+            html5QrcodeScanner.applyVideoConstraints({
+                advanced: [{ torch: isTorchOn }]
+            }).catch(() => {
+                showStatus("Lanterna não suportada neste dispositivo.", "warning");
+            });
         }
     }
 
@@ -607,7 +647,7 @@
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             const swCode = `
-                const CACHE = 'belt-nfe-v3';
+                const CACHE = 'belt-nfe-v4';
                 self.addEventListener('install', e => {
                     e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./index.html', './'])).then(() => self.skipWaiting()));
                 });
