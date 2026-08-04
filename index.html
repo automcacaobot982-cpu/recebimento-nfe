@@ -428,6 +428,7 @@
     function voltarParaEtapa1() {
         stopScanner();
         document.getElementById("step2").classList.remove("active");
+        document.getElementById("step1").classList.active = false;
         document.getElementById("step1").classList.add("active");
     }
 
@@ -447,20 +448,24 @@
 
         html5QrcodeScanner = new Html5Qrcode("reader", { verbose: false });
 
+        // Retângulo estreito e largo ideal para o código Code-128 de 44 dígitos da DANFE
         const qrboxFunction = function(viewfinderWidth, viewfinderHeight) {
-            let width = Math.floor(viewfinderWidth * 0.85);
-            let height = Math.floor(width * 0.4);
+            let width = Math.floor(viewfinderWidth * 0.92);
+            let height = Math.max(90, Math.floor(viewfinderHeight * 0.25));
             return { width: width, height: height };
         };
 
         const config = { 
-            fps: 15,
-            qrbox: qrboxFunction
+            fps: 30, // Frequência alta para captura rápida
+            qrbox: qrboxFunction,
+            formatsToSupport: [
+                Html5QrcodeSupportedFormats.CODE_128,
+                Html5QrcodeSupportedFormats.QR_CODE
+            ]
         };
 
-        // Solicitação direta de câmera traseira sem travar resolução específica
         html5QrcodeScanner.start(
-            { facingMode: { exact: "environment" } }, 
+            { facingMode: "environment" }, 
             config, 
             onScanSuccess
         )
@@ -468,20 +473,8 @@
             isScanning = true;
             document.getElementById("btn-scan").innerText = "⏹ Desativar Câmera";
         })
-        .catch(() => {
-            // Fallback para seleção de câmera genérica se exact falhar
-            html5QrcodeScanner.start(
-                { facingMode: "environment" }, 
-                config, 
-                onScanSuccess
-            )
-            .then(() => {
-                isScanning = true;
-                document.getElementById("btn-scan").innerText = "⏹ Desativar Câmera";
-            })
-            .catch(err => {
-                showStatus("Permissão de câmera negada ou câmera em uso por outro app.", "error");
-            });
+        .catch(err => {
+            showStatus("Permissão de câmera negada ou dispositivo incompatível.", "error");
         });
     }
 
@@ -651,7 +644,7 @@
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             const swCode = `
-                const CACHE = 'belt-nfe-v5';
+                const CACHE = 'belt-nfe-v6';
                 self.addEventListener('install', e => {
                     e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./index.html', './'])).then(() => self.skipWaiting()));
                 });
