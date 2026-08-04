@@ -4,43 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SISTEMA DE RECEBIMENTO | BELT</title>
-
+    
     <!-- PWA & Tags de Aplicativo Nativo -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
     <meta name="theme-color" content="#0f172a">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="BELT NF-e">
 
-    <!-- Favicon e Ícones PWA dinâmicos em SVG -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230284c7'><path d='M3 7V5a2 2 0 0 1 2-2h2'></path><path d='M17 3h2a2 2 0 0 1 2 2v2'></path><path d='M21 17v2a2 2 0 0 1-2 2h-2'></path><path d='M7 21H5a2 2 0 0 1-2-2v-2'></path><path d='M7 8v8M10.5 8v8M14 8v8M17 8v8'></path></svg>">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230284c7'><path d='M3 7V5a2 2 0 0 1 2-2h2'></path><path d='M17 3h2a2 2 0 0 1 2 2v2'></path><path d='M21 17v2a2 2 0 0 1-2 2h-2'></path><path d='M7 21H5a2 2 0 0 1-2-2v-2'></path><path d='M7 8v8M10.5 8v8M14 8v8M17 8v8'></path></svg>">
-
-    <!-- Manifest embutido inline dinamicamente -->
-    <script>
-        const manifestData = {
-            "name": "SISTEMA DE RECEBIMENTO BELT",
-            "short_name": "BELT NF-e",
-            "description": "Registro e leitura de chaves de acesso NF-e",
-            "start_url": "./",
-            "display": "standalone",
-            "orientation": "portrait",
-            "background_color": "#0f172a",
-            "theme_color": "#0f172a",
-            "lang": "pt-BR"
-        };
-        const stringManifest = JSON.stringify(manifestData);
-        const blobManifest = new Blob([stringManifest], {type: 'application/json'});
-        const manifestURL = URL.createObjectURL(blobManifest);
-        const linkManifest = document.createElement('link');
-        linkManifest.rel = 'manifest';
-        linkManifest.href = manifestURL;
-        document.head.appendChild(linkManifest);
-    </script>
-
     <!-- Leitor QR / Barcode -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-
     <style>
         :root {
             --bg-body: #0f172a;
@@ -56,8 +31,6 @@
             --success-bg: rgba(16, 185, 129, 0.12);
             --danger: #ef4444;
             --danger-bg: rgba(239, 68, 68, 0.12);
-            --warning: #f59e0b;
-            --warning-bg: rgba(245, 158, 11, 0.12);
             --radius: 10px;
         }
 
@@ -89,23 +62,6 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
-            position: relative;
-        }
-
-        .offline-badge {
-            display: none;
-            background-color: var(--warning-bg);
-            color: var(--warning);
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 6px 12px;
-            border-radius: 20px;
-            text-align: center;
-            border: 1px solid var(--warning);
-        }
-
-        .offline-badge.visible {
-            display: block;
         }
 
         header {
@@ -143,11 +99,6 @@
             border: 1px dashed var(--border);
             background: #000;
             min-height: 200px;
-        }
-
-        #reader video {
-            width: 100% !important;
-            object-fit: cover;
         }
 
         form {
@@ -200,15 +151,9 @@
             justify-content: center;
             align-items: center;
             gap: 8px;
-            transition: opacity 0.2s ease, transform 0.1s ease;
-        }
-
-        .btn:active {
-            transform: scale(0.99);
         }
 
         .btn-accent { background-color: var(--accent); color: #ffffff; }
-        .btn-accent:hover { background-color: var(--accent-hover); }
         .btn-secondary { background-color: #334155; color: var(--text-primary); }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -220,40 +165,18 @@
             text-align: center;
             display: none;
             line-height: 1.3;
-            word-break: break-word;
         }
 
         .status-success { background-color: var(--success-bg); color: var(--success); border: 1px solid var(--success); }
         .status-error { background-color: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); }
-        .status-warning { background-color: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning); }
-
-        .spinner {
-            width: 16px;
-            height: 16px;
-            border: 2px solid #ffffff;
-            border-bottom-color: transparent;
-            border-radius: 50%;
-            display: inline-block;
-            box-sizing: border-box;
-            animation: rotation 1s linear infinite;
-        }
-
-        @keyframes rotation {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <div id="offlineBadge" class="offline-badge">
-        ⚠️ Você está Offline (Registros serão salvos no dispositivo)
-    </div>
-
     <header>
         <div class="brand-title">RECEBIMENTO <span>NF-e</span></div>
-        <div class="badge-online" id="statusBadge">SISTEMA ATIVO</div>
+        <div class="badge-online">SISTEMA ATIVO</div>
     </header>
 
     <div id="reader"></div>
@@ -273,9 +196,7 @@
             <input type="text" id="chaveAcesso" name="chaveAcesso" required maxlength="44" placeholder="Aguardando scanner ou digitação..." pattern="[0-9]{44}" inputmode="numeric">
         </div>
 
-        <button type="submit" id="btn-submit" class="btn btn-accent">
-            <span id="btnText">💾 Gravar Registro</span>
-        </button>
+        <button type="submit" id="btn-submit" class="btn btn-accent">💾 Gravar Registro</button>
     </form>
 
     <div id="statusMsg" class="status-msg"></div>
@@ -285,7 +206,7 @@
     // URL de integração com o Google Apps Script
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxqQUQIhZYJ441ue89OuEVYf1z_dvLXVH0Z8kDqadyAKCXSWev-qFfydgsQI3CIe318/exec";
 
-    // LISTA DE USUÁRIOS PERMITIDOS
+    // LISTA DE USUÁRIOS PERMITIDOS (Adicione novos nomes nesta lista no futuro)
     const USUARIOS_PERMITIDOS = [
         "MICKAEL KALIL WAGNER DE OLIVEIRA",
         "ARTHUR PEREIRA WEBER",
@@ -296,37 +217,10 @@
 
     let html5QrcodeScanner = null;
     let isScanning = false;
-    let audioCtx = null;
-
-    // Apenas numéricos no campo de chave
-    document.getElementById('chaveAcesso').addEventListener('input', function() {
-        this.value = this.value.replace(/\D/g, '');
-    });
 
     window.onload = function() {
         carregarListaUsuarios();
-        atualizarStatusConexao();
     };
-
-    // Monitoramento de Conexão Offline/Online
-    function atualizarStatusConexao() {
-        const badge = document.getElementById('offlineBadge');
-        const statusBadge = document.getElementById('statusBadge');
-        if (!navigator.onLine) {
-            badge.classList.add('visible');
-            statusBadge.innerText = "MODO OFFLINE";
-            statusBadge.style.color = "var(--warning)";
-            statusBadge.style.borderColor = "var(--warning)";
-        } else {
-            badge.classList.remove('visible');
-            statusBadge.innerText = "SISTEMA ATIVO";
-            statusBadge.style.color = "var(--border-focus)";
-            statusBadge.style.borderColor = "rgba(56, 189, 248, 0.3)";
-            sincronizarFilaOffline();
-        }
-    }
-    window.addEventListener('online', atualizarStatusConexao);
-    window.addEventListener('offline', atualizarStatusConexao);
 
     function carregarListaUsuarios() {
         const select = document.getElementById("usuarioSelect");
@@ -337,6 +231,7 @@
             select.appendChild(opt);
         });
 
+        // Lembra o último operador selecionado neste dispositivo
         const ultimoUsuario = localStorage.getItem("ultimo_operador_nfe");
         if (ultimoUsuario && USUARIOS_PERMITIDOS.includes(ultimoUsuario)) {
             select.value = ultimoUsuario;
@@ -344,19 +239,12 @@
     }
 
     function toggleScanner() {
-        prepararAudio();
         if (isScanning) stopScanner();
         else startScanner();
     }
 
     function startScanner() {
-        const formatos = [
-            Html5QrcodeSupportedFormats.CODE_128,
-            Html5QrcodeSupportedFormats.EAN_13,
-            Html5QrcodeSupportedFormats.QR_CODE
-        ];
-
-        html5QrcodeScanner = new Html5Qrcode("reader", { formatsToSupport: formatos, verbose: false });
+        html5QrcodeScanner = new Html5Qrcode("reader");
         const config = { fps: 10, qrbox: { width: 260, height: 120 }, aspectRatio: 1.777778 };
 
         html5QrcodeScanner.start({ facingMode: "environment" }, config, onScanSuccess)
@@ -364,7 +252,7 @@
             isScanning = true;
             document.getElementById("btn-scan").innerText = "⏹ Desativar Câmera";
         })
-        .catch(() => showStatus("Câmera indisponível ou permissão negada.", "error"));
+        .catch(() => showStatus("Câmera indisponível ou permissão negada.", false));
     }
 
     function stopScanner() {
@@ -372,181 +260,75 @@
             html5QrcodeScanner.stop().then(() => {
                 isScanning = false;
                 document.getElementById("btn-scan").innerText = "📷 Ativar Câmera";
-            }).catch(() => {});
+            });
         }
     }
 
     function onScanSuccess(decodedText) {
         let cleanText = decodedText.replace(/\D/g, '');
         if (cleanText.length === 44) {
-            tocarBip();
-            if (navigator.vibrate) navigator.vibrate(200);
-
             document.getElementById("chaveAcesso").value = cleanText;
             stopScanner();
-            showStatus("✅ Chave lida com sucesso!", "success");
+            showStatus("Chave lida com sucesso!", true);
         }
     }
 
-    async function enviarDados(e) {
+    function enviarDados(e) {
         e.preventDefault();
 
         const btnSubmit = document.getElementById("btn-submit");
-        const btnText = document.getElementById("btnText");
         const usuarioSel = document.getElementById("usuarioSelect").value;
         const chaveVal = document.getElementById("chaveAcesso").value.replace(/\D/g, '');
 
         if (!usuarioSel) {
-            showStatus("Por favor, selecione o operador responsável.", "error");
+            showStatus("Por favor, selecione o operador responsável.", false);
             return;
         }
 
         if (chaveVal.length !== 44) {
-            showStatus("A chave deve conter exatamente 44 dígitos.", "error");
+            showStatus("A chave deve conter exatamente 44 dígitos.", false);
             return;
         }
 
         localStorage.setItem("ultimo_operador_nfe", usuarioSel);
 
-        setLoading(true);
+        btnSubmit.disabled = true;
+        btnSubmit.innerText = "SALVANDO...";
 
-        if (!navigator.onLine) {
-            salvarFilaOffline(chaveVal, usuarioSel);
-            showStatus("⚠️ Registro salvo offline. Será transmitido assim que houver conexão.", "warning");
-            document.getElementById("chaveAcesso").value = "";
-            setLoading(false);
-            return;
-        }
-
-        try {
-            await requisitarEnvio(chaveVal, usuarioSel);
-            showStatus("✅ Registrado com sucesso!", "success");
-            document.getElementById("chaveAcesso").value = "";
-        } catch (err) {
-            salvarFilaOffline(chaveVal, usuarioSel);
-            showStatus("⚠️ Erro na rede. O registro foi gravado offline para envio automático.", "warning");
-            document.getElementById("chaveAcesso").value = "";
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    async function requisitarEnvio(chaveAcesso, usuario) {
-        const response = await fetch(WEB_APP_URL, {
+        fetch(WEB_APP_URL, {
             method: "POST",
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ chaveAcesso: chaveAcesso, usuario: usuario })
-        });
-        const data = await response.json();
-        if (data.status !== "success") {
-            throw new Error(data.error || "Erro no envio");
-        }
-        return data;
-    }
-
-    function salvarFilaOffline(chaveAcesso, usuario) {
-        const fila = JSON.parse(localStorage.getItem('nfe_pendentes') || '[]');
-        fila.push({ chaveAcesso: chaveAcesso, usuario: usuario, timestamp: new Date().toISOString() });
-        localStorage.setItem('nfe_pendentes', JSON.stringify(fila));
-    }
-
-    async function sincronizarFilaOffline() {
-        const fila = JSON.parse(localStorage.getItem('nfe_pendentes') || '[]');
-        if (fila.length === 0) return;
-
-        showStatus(`Sincronizando ${fila.length} registro(s) offline...`, "warning");
-
-        const naoEnviados = [];
-        for (const item of fila) {
-            try {
-                await requisitarEnvio(item.chaveAcesso, item.usuario);
-            } catch (e) {
-                naoEnviados.push(item);
+            body: JSON.stringify({
+                chaveAcesso: chaveVal,
+                usuario: usuarioSel
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                showStatus("✅ Registrado com sucesso!", true);
+                document.getElementById("chaveAcesso").value = "";
+            } else {
+                showStatus("❌ Falha ao salvar: " + (data.error || "Tente novamente"), false);
             }
-        }
-
-        localStorage.setItem('nfe_pendentes', JSON.stringify(naoEnviados));
-
-        if (naoEnviados.length === 0) {
-            showStatus("✅ Todos os registros offline foram sincronizados!", "success");
-        } else {
-            showStatus(`⚠️ Restam ${naoEnviados.length} registro(s) pendentes.`, "warning");
-        }
+        })
+        .catch(() => showStatus("❌ Erro de comunicação com a planilha.", false))
+        .finally(() => {
+            btnSubmit.disabled = false;
+            btnSubmit.innerText = "💾 GRAVAR REGISTRO";
+        });
     }
 
-    function setLoading(isLoading) {
-        const btnSubmit = document.getElementById("btn-submit");
-        const btnText = document.getElementById("btnText");
-        btnSubmit.disabled = isLoading;
-        if (isLoading) {
-            btnText.innerHTML = '<span class="spinner"></span> Salvando...';
-        } else {
-            btnText.innerHTML = '💾 Gravar Registro';
-        }
-    }
-
-    function showStatus(msg, type) {
+    function showStatus(msg, isSuccess) {
         const el = document.getElementById("statusMsg");
         el.innerText = msg;
-        el.className = "status-msg status-" + type;
+        el.className = "status-msg " + (isSuccess ? "status-success" : "status-error");
         el.style.display = "block";
-        setTimeout(() => { el.style.display = "none"; }, 4000);
+        setTimeout(() => { el.style.display = "none"; }, 3500);
     }
 
-    function prepararAudio() {
-        try {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-        } catch (e) {}
-    }
-
-    function tocarBip() {
-        try {
-            if (!audioCtx) return;
-            const oscilador = audioCtx.createOscillator();
-            const ganho = audioCtx.createGain();
-            oscilador.connect(ganho);
-            ganho.connect(audioCtx.destination);
-            oscilador.type = 'sine';
-            oscilador.frequency.value = 880;
-            ganho.gain.setValueAtTime(0.25, audioCtx.currentTime);
-            oscilador.start();
-            oscilador.stop(audioCtx.currentTime + 0.15);
-        } catch (e) {}
-    }
-
-    // Registro de Service Worker Inline (offline inteligente)
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            const swCode = `
-                const CACHE = 'belt-nfe-v1';
-                self.addEventListener('install', e => {
-                    e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./'])).then(() => self.skipWaiting()));
-                });
-                self.addEventListener('activate', e => {
-                    e.waitUntil(caches.keys().then(keys => Promise.all(
-                        keys.filter(k => k !== CACHE).map(k => caches.delete(k))
-                    )).then(() => self.clients.claim()));
-                });
-                self.addEventListener('fetch', e => {
-                    if (e.request.method !== 'GET') return;
-                    const url = new URL(e.request.url);
-                    if (url.hostname.includes('script.google.com') || url.hostname.includes('googleusercontent.com')) return;
-                    e.respondWith(
-                        caches.match(e.request).then(cached => {
-                            const networked = fetch(e.request).then(res => {
-                                const cacheCopy = res.clone();
-                                caches.open(CACHE).then(c => c.put(e.request, cacheCopy));
-                                return res;
-                            }).catch(() => cached);
-                            return cached || networked;
-                        })
-                    );
-                });
-            `;
-            const blob = new Blob([swCode], { type: 'application/javascript' });
-            const swUrl = URL.createObjectURL(blob);
-            navigator.serviceWorker.register(swUrl).catch(err => console.error('SW Error:', err));
+            navigator.serviceWorker.register('./sw.js').catch(err => console.error('SW Error:', err));
         });
     }
 </script>
