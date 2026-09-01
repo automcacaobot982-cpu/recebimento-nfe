@@ -12,31 +12,15 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="BELT NF-e">
 
-    <!-- Favicon e Ícones PWA dinâmicos em SVG -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230284c7'><path d='M3 7V5a2 2 0 0 1 2-2h2'></path><path d='M17 3h2a2 2 0 0 1 2 2v2'></path><path d='M21 17v2a2 2 0 0 1-2 2h-2'></path><path d='M7 21H5a2 2 0 0 1-2-2v-2'></path><path d='M7 8v8M10.5 8v8M14 8v8M17 8v8'></path></svg>">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230284c7'><path d='M3 7V5a2 2 0 0 1 2-2h2'></path><path d='M17 3h2a2 2 0 0 1 2 2v2'></path><path d='M21 17v2a2 2 0 0 1-2 2h-2'></path><path d='M7 21H5a2 2 0 0 1-2-2v-2'></path><path d='M7 8v8M10.5 8v8M14 8v8M17 8v8'></path></svg>">
+    <!-- Favicon (aba do navegador) -->
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 
-    <!-- Manifest PWA gerado inline -->
-    <script>
-        const manifestData = {
-            "name": "SISTEMA DE RECEBIMENTO BELT",
-            "short_name": "BELT NF-e",
-            "description": "Registro e leitura de chaves de acesso NF-e",
-            "start_url": "./index.html",
-            "display": "standalone",
-            "orientation": "any",
-            "background_color": "#0f172a",
-            "theme_color": "#0f172a",
-            "lang": "pt-BR"
-        };
-        const stringManifest = JSON.stringify(manifestData);
-        const blobManifest = new Blob([stringManifest], {type: 'application/json'});
-        const manifestURL = URL.createObjectURL(blobManifest);
-        const linkManifest = document.createElement('link');
-        linkManifest.rel = 'manifest';
-        linkManifest.href = manifestURL;
-        document.head.appendChild(linkManifest);
-    </script>
+    <!-- Ícone da tela inicial no iOS (o iOS ignora os ícones do manifest) -->
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+    <!-- Manifest PWA (arquivo real: essencial para o ícone aparecer no Android) -->
+    <link rel="manifest" href="manifest.json">
 
     <!-- Leitor QR / Barcode -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -428,7 +412,6 @@
     function voltarParaEtapa1() {
         stopScanner();
         document.getElementById("step2").classList.remove("active");
-        document.getElementById("step1").classList.active = false;
         document.getElementById("step1").classList.add("active");
     }
 
@@ -641,37 +624,11 @@
         } catch (e) {}
     }
 
+    // Registro do Service Worker (arquivo real ./sw.js) para funcionamento offline
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            const swCode = `
-                const CACHE = 'belt-nfe-v7';
-                self.addEventListener('install', e => {
-                    e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./index.html', './'])).then(() => self.skipWaiting()));
-                });
-                self.addEventListener('activate', e => {
-                    e.waitUntil(caches.keys().then(keys => Promise.all(
-                        keys.filter(k => k !== CACHE).map(k => caches.delete(k))
-                    )).then(() => self.clients.claim()));
-                });
-                self.addEventListener('fetch', e => {
-                    if (e.request.method !== 'GET') return;
-                    const url = new URL(e.request.url);
-                    if (url.hostname.includes('script.google.com') || url.hostname.includes('googleusercontent.com')) return;
-                    e.respondWith(
-                        caches.match(e.request).then(cached => {
-                            const networked = fetch(e.request).then(res => {
-                                const cacheCopy = res.clone();
-                                caches.open(CACHE).then(c => c.put(e.request, cacheCopy));
-                                return res;
-                            }).catch(() => cached);
-                            return cached || networked;
-                        })
-                    );
-                });
-            `;
-            const blob = new Blob([swCode], { type: 'application/javascript' });
-            const swUrl = URL.createObjectURL(blob);
-            navigator.serviceWorker.register(swUrl).catch(err => console.error('SW Error:', err));
+            navigator.serviceWorker.register('./sw.js')
+                .catch(err => console.error('Falha ao registrar o Service Worker:', err));
         });
     }
 </script>
