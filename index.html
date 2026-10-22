@@ -2,11 +2,12 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>SISTEMA DE RECEBIMENTO | BELT</title>
 
     <!-- PWA & Tags Nativas Mobile -->
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#0c353b">
+    <meta name="description" content="Registro e leitura de chaves de acesso NF-e da Belt Correias.">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -22,313 +23,507 @@
     <!-- Manifest PWA (arquivo real: essencial para o ícone aparecer no Android) -->
     <link rel="manifest" href="manifest.json">
 
+    <!-- Fontes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
     <!-- Leitor QR / Barcode -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
     <style>
         :root {
-            --bg-body: #0f172a;
-            --surface: #1e293b;
-            --surface-card: #0f172a;
-            --border: #334155;
-            --border-focus: #38bdf8;
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --accent: #0284c7;
-            --accent-hover: #0369a1;
-            --success: #10b981;
-            --success-bg: rgba(16, 185, 129, 0.12);
-            --danger: #ef4444;
-            --danger-bg: rgba(239, 68, 68, 0.12);
-            --warning: #f59e0b;
-            --warning-bg: rgba(245, 158, 11, 0.12);
-            --radius: 10px;
+            --bg:#eceff1;
+            --surface:#ffffff;
+            --surface-2:#f6f8f9;
+            --ink:#16191c;
+            --ink-2:#586066;
+            --ink-3:#8a939a;
+            --line:#dde3e6;
+            --line-2:#c9d2d6;
+            --bar:#0c353b;
+            --brand:#0d5b63;
+            --brand-2:#0a474d;
+            --brand-tint:#e2efef;
+            --amber:#b57f00;
+            --amber-text:#854d0e;
+            --amber-tint:#fef6dd;
+            --red:#cf3a2c;
+            --red-tint:#fbe6e3;
+            --green:#1a9455;
+            --green-tint:#e2f3ea;
+            --shadow-sm:0 1px 2px rgba(16,25,30,.08);
+            --shadow-md:0 10px 30px rgba(12,42,48,.14);
+            --r:14px;
+            --r-sm:9px;
+            --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+            --num:'Space Grotesk','IBM Plex Sans',system-ui,sans-serif;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
+        html, body { min-height: 100vh; }
+
         body {
-            background-color: var(--bg-body);
-            color: var(--text-primary);
+            font-family: var(--sans);
+            background-color: var(--bg);
+            color: var(--ink);
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.45;
+        }
+
+        button { font-family: inherit; cursor: pointer; }
+        input, select { font-family: inherit; }
+        .hidden { display: none !important; }
+
+        .ico { width: 1.15em; height: 1.15em; flex: 0 0 auto; vertical-align: -0.17em; }
+
+        /* ===== TOPBAR ===== */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background: var(--bar);
+            color: #eaf6f5;
             display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-            padding: 12px;
+            align-items: center;
+            gap: 12px;
+            padding: 0 16px;
+            min-height: 60px;
+            padding-top: env(safe-area-inset-top);
+        }
+
+        .tb-brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+        .tb-mark { width: 38px; height: 38px; flex: 0 0 auto; }
+        .tb-title {
+            font-family: var(--num);
+            font-weight: 600;
+            font-size: 15px;
+            letter-spacing: .01em;
+            white-space: nowrap;
+            line-height: 1.1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .tb-title .t-nfe { color: #6fd0cb; }
+        .tb-title small {
+            display: block;
+            font-family: var(--sans);
+            font-weight: 400;
+            font-size: 11px;
+            color: #9ccbc7;
+            letter-spacing: 0;
+        }
+
+        .tb-spacer { flex: 1; }
+        .tb-actions { display: flex; align-items: center; gap: 8px; }
+
+        .badge-online {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .03em;
+            color: #bfe9e4;
+            background: rgba(127,212,208,.12);
+            border: 1px solid rgba(127,212,208,.34);
+            padding: 5px 10px 5px 8px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+        .badge-online .dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: #34d399;
+            box-shadow: 0 0 0 0 rgba(52,211,153,.6);
+            animation: pulse 2s infinite;
+        }
+        .badge-online.offline {
+            color: #ffd98a;
+            background: rgba(245,197,66,.14);
+            border-color: rgba(245,197,66,.4);
+        }
+        .badge-online.offline .dot { background: #f5c542; animation: none; box-shadow: none; }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(52,211,153,.55); }
+            70% { box-shadow: 0 0 0 6px rgba(52,211,153,0); }
+            100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+        }
+
+        .tb-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: var(--r-sm);
+            font-size: 12.5px;
+            font-weight: 600;
+            padding: 7px 11px;
+            white-space: nowrap;
+            transition: background .15s, border-color .15s;
+        }
+        .tb-btn-install {
+            background: rgba(255,255,255,.12);
+            border: 1px solid rgba(255,255,255,.22);
+            color: #fff;
+        }
+        .tb-btn-install:hover { background: rgba(255,255,255,.2); }
+        .tb-btn-logout {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,.28);
+            color: #dff1ef;
+        }
+        .tb-btn-logout:hover { background: rgba(255,255,255,.12); }
+
+        /* ===== CONTEÚDO ===== */
+        main {
+            max-width: 460px;
+            margin: 0 auto;
+            padding: 20px 14px calc(34px + env(safe-area-inset-bottom));
         }
 
         .app-container {
-            width: 100%;
-            max-width: 440px;
             background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
+            border: 1px solid var(--line);
+            border-radius: var(--r);
+            box-shadow: var(--shadow-md);
             padding: 20px;
             display: flex;
             flex-direction: column;
             gap: 16px;
-            position: relative;
         }
 
         .offline-badge {
             display: none;
-            background-color: var(--warning-bg);
-            color: var(--warning);
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 6px 12px;
-            border-radius: 20px;
-            text-align: center;
-            border: 1px solid var(--warning);
-        }
-
-        .offline-badge.visible {
-            display: block;
-        }
-
-        header {
-            display: flex;
             align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 12px;
-        }
-
-        .brand-title {
-            font-size: 0.95rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            color: var(--text-primary);
-        }
-
-        .brand-title span { color: var(--accent); }
-
-        .badge-online {
-            font-size: 0.7rem;
-            background: rgba(56, 189, 248, 0.1);
-            color: var(--border-focus);
-            padding: 3px 8px;
-            border-radius: 20px;
-            border: 1px solid rgba(56, 189, 248, 0.3);
+            gap: 8px;
+            background: var(--amber-tint);
+            color: var(--amber-text);
+            font-size: .78rem;
             font-weight: 600;
+            padding: 10px 13px;
+            border-radius: var(--r-sm);
+            border: 1px solid rgba(181,127,0,.35);
+            line-height: 1.3;
         }
+        .offline-badge.visible { display: flex; }
+
+        .card-head { margin-bottom: 2px; }
+        .card-head .eyebrow {
+            font-size: 11.5px;
+            font-weight: 600;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--brand);
+            margin-bottom: 3px;
+        }
+        .card-head h1 {
+            font-family: var(--num);
+            font-weight: 600;
+            font-size: 20px;
+            color: var(--ink);
+        }
+        .card-head p { font-size: 13px; color: var(--ink-2); margin-top: 3px; }
 
         /* Gerenciamento de Páginas/Etapas */
-        .step-page {
-            display: none;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .step-page.active {
-            display: flex;
-        }
+        .step-page { display: none; flex-direction: column; gap: 16px; }
+        .step-page.active { display: flex; }
 
         .operator-info {
-            background: var(--surface-card);
-            border: 1px solid var(--border);
-            padding: 10px 14px;
-            border-radius: 8px;
+            background: var(--brand-tint);
+            border: 1px solid rgba(13,91,99,.18);
+            padding: 11px 14px;
+            border-radius: var(--r-sm);
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            font-size: 0.8rem;
+            gap: 10px;
+            font-size: .82rem;
+            color: var(--brand-2);
         }
-
-        .operator-info span {
-            color: var(--border-focus);
-            font-weight: 700;
+        .operator-info .op-ico {
+            width: 30px; height: 30px; flex: 0 0 auto;
+            display: grid; place-items: center;
+            background: var(--brand); color: #fff; border-radius: 8px;
         }
-
-        .btn-link {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 0.75rem;
-            text-decoration: underline;
-            cursor: pointer;
-        }
+        .operator-info .op-ico .ico { width: 17px; height: 17px; vertical-align: 0; }
+        .operator-info .op-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--brand); font-weight: 600; }
+        .operator-info span { display: block; color: var(--ink); font-weight: 700; font-size: .92rem; }
 
         #reader {
             width: 100%;
-            border-radius: 8px;
+            border-radius: var(--r-sm);
             overflow: hidden;
-            border: 1px dashed var(--border);
-            background: #000;
-            min-height: 200px;
+            border: 1px solid var(--line-2);
+            background: #0b1417;
+            min-height: 210px;
         }
+        #reader video { width: 100% !important; height: auto !important; object-fit: cover; }
 
-        #reader video {
-            width: 100% !important;
-            height: auto !important;
-            object-fit: cover;
-        }
+        .camera-controls { display: flex; gap: 8px; }
 
-        .camera-controls {
-            display: flex;
-            gap: 8px;
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .field-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
+        form { display: flex; flex-direction: column; gap: 13px; }
+        .field-group { display: flex; flex-direction: column; gap: 7px; }
         .field-group label {
-            font-size: 0.75rem;
+            font-size: .72rem;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.04em;
-            color: var(--text-secondary);
+            letter-spacing: .04em;
+            color: var(--ink-2);
         }
 
         input, select {
             width: 100%;
-            height: 46px;
-            padding: 0 12px;
-            background-color: var(--surface-card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-size: 0.85rem;
+            height: 48px;
+            padding: 0 13px;
+            background-color: var(--surface-2);
+            border: 1px solid var(--line-2);
+            border-radius: var(--r-sm);
+            color: var(--ink);
+            font-size: .92rem;
             outline: none;
+            transition: border-color .15s, box-shadow .15s;
         }
-
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23586066' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 13px center;
+            padding-right: 38px;
+        }
         input:focus, select:focus {
-            border-color: var(--border-focus);
+            border-color: var(--brand);
+            box-shadow: 0 0 0 3px rgba(13,91,99,.12);
         }
+        input::placeholder { color: var(--ink-3); }
 
         .btn {
             width: 100%;
-            height: 48px;
+            height: 50px;
             border: none;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 700;
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
+            border-radius: var(--r-sm);
+            font-size: .92rem;
+            font-weight: 600;
+            letter-spacing: .01em;
             cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 8px;
-            transition: opacity 0.2s ease, transform 0.1s ease;
+            gap: 9px;
+            transition: background .15s, transform .08s, opacity .15s;
         }
-
-        .btn:active {
-            transform: scale(0.99);
+        .btn:active { transform: scale(.99); }
+        .btn-accent { background-color: var(--brand); color: #fff; }
+        .btn-accent:hover { background-color: var(--brand-2); }
+        .btn-secondary { background-color: var(--surface-2); color: var(--ink); border: 1px solid var(--line-2); flex: 1; }
+        .btn-secondary:hover { background-color: #eef1f3; }
+        .btn-torch {
+            background-color: var(--amber-tint);
+            color: var(--amber-text);
+            border: 1px solid rgba(181,127,0,.3);
+            width: 56px;
+            flex: 0 0 auto;
         }
-
-        .btn-accent { background-color: var(--accent); color: #ffffff; }
-        .btn-accent:hover { background-color: var(--accent-hover); }
-        .btn-secondary { background-color: #334155; color: var(--text-primary); }
-        .btn-torch { background-color: #475569; color: #fbbf24; width: 30%; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-torch.on { background-color: #fde68a; border-color: #eab308; }
+        .btn:disabled { opacity: .55; cursor: not-allowed; }
 
         .status-msg {
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 0.85rem;
+            padding: 12px 14px;
+            border-radius: var(--r-sm);
+            font-size: .85rem;
             font-weight: 600;
-            text-align: center;
             display: none;
+            align-items: center;
+            gap: 9px;
             line-height: 1.3;
             word-break: break-word;
         }
-
-        .status-success { background-color: var(--success-bg); color: var(--success); border: 1px solid var(--success); }
-        .status-error { background-color: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); }
-        .status-warning { background-color: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning); }
+        .status-msg.visible { display: flex; }
+        .status-msg .ico { width: 18px; height: 18px; }
+        .status-success { background-color: var(--green-tint); color: #157347; border: 1px solid rgba(26,148,85,.4); }
+        .status-error { background-color: var(--red-tint); color: #b32c20; border: 1px solid rgba(207,58,44,.4); }
+        .status-warning { background-color: var(--amber-tint); color: var(--amber-text); border: 1px solid rgba(181,127,0,.4); }
 
         .spinner {
-            width: 16px;
-            height: 16px;
-            border: 2px solid #ffffff;
+            width: 17px; height: 17px;
+            border: 2px solid currentColor;
             border-bottom-color: transparent;
             border-radius: 50%;
             display: inline-block;
-            box-sizing: border-box;
             animation: rotation 1s linear infinite;
         }
+        @keyframes rotation { to { transform: rotate(360deg); } }
 
-        @keyframes rotation {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        /* ===== MODAL (instalação iOS) ===== */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(9,28,32,.55);
+            backdrop-filter: blur(2px);
+            z-index: 80;
+            display: flex; align-items: center; justify-content: center;
+            padding: 16px;
+        }
+        .modal {
+            background: var(--surface);
+            width: 100%; max-width: 400px;
+            border-radius: var(--r);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+        .modal-head {
+            display: flex; align-items: center; gap: 10px;
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--line);
+        }
+        .modal-head .m-ico {
+            width: 36px; height: 36px; flex: 0 0 auto;
+            display: grid; place-items: center;
+            background: var(--brand-tint); color: var(--brand); border-radius: 9px;
+        }
+        .modal-head h3 { margin: 0; font-family: var(--num); font-weight: 600; font-size: 16px; }
+        .modal-body { padding: 18px 20px; font-size: .9rem; color: var(--ink-2); line-height: 1.5; }
+        .modal-body ol { margin: 10px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 7px; }
+        .modal-body b { color: var(--ink); }
+        .modal-foot { display: flex; justify-content: flex-end; padding: 14px 20px; border-top: 1px solid var(--line); }
+        .modal-foot .btn { width: auto; padding: 0 20px; height: 42px; }
+
+        @media (max-width: 560px) {
+            .tb-title small { display: none; }
+        }
+        @media (max-width: 430px) {
+            .topbar { gap: 8px; padding: 0 12px; }
+            .tb-btn span.lbl { display: none; }
+            .tb-btn { padding: 8px; }
+            .tb-title .t-long { display: none; }
+            .tb-title { font-size: 16px; }
+            .badge-online { font-size: 10px; padding: 5px 8px 5px 7px; letter-spacing: .02em; }
         }
 
-        @media screen and (orientation: landscape) {
-            body { padding: 4px; }
-            .app-container { max-width: 100%; padding: 12px; }
-            #reader { min-height: 160px; }
+        @media screen and (orientation: landscape) and (max-height: 500px) {
+            main { padding: 10px; }
+            .app-container { padding: 14px; gap: 12px; }
+            #reader { min-height: 150px; }
         }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <div id="offlineBadge" class="offline-badge">
-        ⚠️ Você está Offline (Registros serão salvos no dispositivo)
+<header class="topbar">
+    <div class="tb-brand">
+        <svg class="tb-mark" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+            <rect width="64" height="64" rx="15" fill="#0a474d"/>
+            <g stroke="#7fd4d0" stroke-width="3.4" fill="none">
+                <circle cx="25" cy="33" r="12.5"/>
+                <circle cx="46" cy="33" r="7.5"/>
+            </g>
+            <path d="M25 20.5 H46" stroke="#cfeeea" stroke-width="3.4" stroke-linecap="round"/>
+        </svg>
+        <div class="tb-title"><span class="t-long">RECEBIMENTO </span><span class="t-nfe">NF-e</span><small>Belt Correias</small></div>
     </div>
 
-    <header>
-        <div class="brand-title">RECEBIMENTO <span>NF-e</span></div>
-        <div class="badge-online" id="statusBadge">SISTEMA ATIVO</div>
-    </header>
+    <div class="tb-spacer"></div>
+
+    <div class="tb-actions">
+        <div class="badge-online" id="statusBadge">
+            <span class="dot"></span><span id="statusText">SISTEMA ATIVO</span>
+        </div>
+        <button type="button" class="tb-btn tb-btn-install" id="btnInstall" title="Baixar aplicativo no celular">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="m7.5 10 4.5 4 4.5-4"/><path d="M5 20h14"/></svg>
+            <span class="lbl">Baixar app</span>
+        </button>
+        <button type="button" class="tb-btn tb-btn-logout hidden" id="btnSair" title="Sair / trocar operador">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="m10 17 5-5-5-5"/><path d="M15 12H3"/></svg>
+            <span class="lbl">Sair</span>
+        </button>
+    </div>
+</header>
+
+<main>
+<div class="app-container">
+    <div id="offlineBadge" class="offline-badge">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        <span>Você está offline — os registros serão salvos no dispositivo.</span>
+    </div>
 
     <!-- ETAPA 1: SELEÇÃO DO OPERADOR -->
     <div id="step1" class="step-page active">
+        <div class="card-head">
+            <p class="eyebrow">Recebimento de NF-e</p>
+            <h1>Identificação do operador</h1>
+            <p>Selecione seu nome para iniciar o registro das chaves de acesso.</p>
+        </div>
         <form id="step1Form" onsubmit="avancarParaEtapa2(event)">
             <div class="field-group">
-                <label for="usuarioSelect">Operador Responsável</label>
+                <label for="usuarioSelect">Operador responsável</label>
                 <select id="usuarioSelect" required>
-                    <option value="">-- SELECIONE SEU NOME --</option>
+                    <option value="">— Selecione seu nome —</option>
                 </select>
             </div>
-            <button type="submit" class="btn btn-accent">Avançar ➔</button>
+            <button type="submit" class="btn btn-accent">
+                Avançar
+                <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+            </button>
         </form>
     </div>
 
     <!-- ETAPA 2: DIGITAÇÃO E LEITURA DA CHAVE -->
     <div id="step2" class="step-page">
         <div class="operator-info">
-            <div>Operador: <span id="displayOperator"></span></div>
-            <button type="button" class="btn-link" onclick="voltarParaEtapa1()">Alterar</button>
+            <div class="op-ico">
+                <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div>
+                <div class="op-label">Operador</div>
+                <span id="displayOperator"></span>
+            </div>
         </div>
 
         <div id="reader"></div>
 
         <div class="camera-controls">
-            <button id="btn-scan" class="btn btn-secondary" onclick="toggleScanner()" style="flex: 1;">⏹ Desativar Câmera</button>
-            <button id="btn-torch" class="btn btn-torch" onclick="alternarLanterna()" title="Ligar Lanterna">🔦</button>
+            <button id="btn-scan" class="btn btn-secondary" onclick="toggleScanner()"></button>
+            <button id="btn-torch" class="btn btn-torch" onclick="alternarLanterna()" title="Ligar / desligar lanterna">
+                <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6c0 2-2 2-2 4v8a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-8c0-2-2-2-2-4V2h14Z"/><path d="M6 6h12"/><path d="M12 12h.01"/></svg>
+            </button>
         </div>
 
         <form id="nfForm" onsubmit="enviarDados(event)">
             <div class="field-group">
-                <label for="chaveAcesso">Chave de Acesso (44 Dígitos)</label>
-                <input type="text" id="chaveAcesso" name="chaveAcesso" required maxlength="44" placeholder="Aguardando scanner ou digitação..." pattern="[0-9]{44}" inputmode="numeric">
+                <label for="chaveAcesso">Chave de acesso (44 dígitos)</label>
+                <input type="text" id="chaveAcesso" name="chaveAcesso" required maxlength="44" placeholder="Aguardando scanner ou digitação…" pattern="[0-9]{44}" inputmode="numeric">
             </div>
 
             <button type="submit" id="btn-submit" class="btn btn-accent">
-                <span id="btnText">💾 Gravar Registro</span>
+                <span id="btnText"></span>
             </button>
         </form>
     </div>
 
     <div id="statusMsg" class="status-msg"></div>
+</div>
+</main>
+
+<!-- MODAL: instruções de instalação (fallback iOS / navegadores sem prompt nativo) -->
+<div id="installModal" class="modal-overlay hidden">
+    <div class="modal">
+        <div class="modal-head">
+            <div class="m-ico">
+                <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="m7.5 10 4.5 4 4.5-4"/><path d="M5 20h14"/></svg>
+            </div>
+            <h3>Instalar no celular</h3>
+        </div>
+        <div class="modal-body" id="installHelpBody">
+            <!-- preenchido via JS conforme o dispositivo -->
+        </div>
+        <div class="modal-foot">
+            <button type="button" class="btn btn-accent" onclick="fecharInstallModal()">Entendi</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -342,11 +537,26 @@
         "RIQUELMI MOREIRA DOS SANTOS"
     ];
 
+    /* ===== Ícones SVG reutilizados no JS ===== */
+    const ICO = {
+        camOn: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7.2 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3.2L14.5 4Z"/><circle cx="12" cy="13" r="3.4"/></svg>',
+        camOff: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 3 19 19"/><path d="M17.5 17.5H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.5"/><path d="M8.5 5h6L17 8h3a2 2 0 0 1 2 2v6.5"/><path d="M9.3 9.3a3.4 3.4 0 0 0 4.6 4.6"/></svg>',
+        save: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.8L15.2 3Z"/><path d="M17 21v-7H7v7"/><path d="M7 3v5h7"/></svg>',
+        ok: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="m8.5 11.5 3 3L22 4.5"/></svg>',
+        err: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4.5"/><path d="M12 16h.01"/></svg>',
+        warn: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>'
+    };
+    const STATUS_ICON = { success: ICO.ok, error: ICO.err, warning: ICO.warn };
+
     let html5QrcodeScanner = null;
     let isScanning = false;
     let isTorchOn = false;
     let audioCtx = null;
     let operadorAtual = "";
+
+    /* Inicializa textos dos botões com ícones */
+    document.getElementById('btn-scan').innerHTML = ICO.camOff + '<span>Desativar câmera</span>';
+    document.getElementById('btnText').innerHTML = ICO.save + '<span>Gravar registro</span>';
 
     document.getElementById('chaveAcesso').addEventListener('input', function() {
         this.value = this.value.replace(/\D/g, '');
@@ -360,16 +570,15 @@
     function atualizarStatusConexao() {
         const badge = document.getElementById('offlineBadge');
         const statusBadge = document.getElementById('statusBadge');
+        const statusText = document.getElementById('statusText');
         if (!navigator.onLine) {
             badge.classList.add('visible');
-            statusBadge.innerText = "MODO OFFLINE";
-            statusBadge.style.color = "var(--warning)";
-            statusBadge.style.borderColor = "var(--warning)";
+            statusBadge.classList.add('offline');
+            statusText.innerText = "MODO OFFLINE";
         } else {
             badge.classList.remove('visible');
-            statusBadge.innerText = "SISTEMA ATIVO";
-            statusBadge.style.color = "var(--border-focus)";
-            statusBadge.style.borderColor = "rgba(56, 189, 248, 0.3)";
+            statusBadge.classList.remove('offline');
+            statusText.innerText = "SISTEMA ATIVO";
             sincronizarFilaOffline();
         }
     }
@@ -405,6 +614,7 @@
 
         document.getElementById("step1").classList.remove("active");
         document.getElementById("step2").classList.add("active");
+        document.getElementById("btnSair").classList.remove("hidden");
 
         setTimeout(() => { startScanner(); }, 300);
     }
@@ -413,6 +623,7 @@
         stopScanner();
         document.getElementById("step2").classList.remove("active");
         document.getElementById("step1").classList.add("active");
+        document.getElementById("btnSair").classList.add("hidden");
     }
 
     function toggleScanner() {
@@ -438,7 +649,7 @@
             return { width: width, height: height };
         };
 
-        const config = { 
+        const config = {
             fps: 30, // Frequência alta para captura rápida
             qrbox: qrboxFunction,
             formatsToSupport: [
@@ -448,13 +659,13 @@
         };
 
         html5QrcodeScanner.start(
-            { facingMode: "environment" }, 
-            config, 
+            { facingMode: "environment" },
+            config,
             onScanSuccess
         )
         .then(() => {
             isScanning = true;
-            document.getElementById("btn-scan").innerText = "⏹ Desativar Câmera";
+            document.getElementById("btn-scan").innerHTML = ICO.camOff + '<span>Desativar câmera</span>';
         })
         .catch(err => {
             showStatus("Permissão de câmera negada ou dispositivo incompatível.", "error");
@@ -467,10 +678,11 @@
                 html5QrcodeScanner.clear();
                 isScanning = false;
                 isTorchOn = false;
-                document.getElementById("btn-scan").innerText = "📷 Ativar Câmera";
+                document.getElementById("btn-torch").classList.remove("on");
+                document.getElementById("btn-scan").innerHTML = ICO.camOn + '<span>Ativar câmera</span>';
             }).catch(() => {
                 isScanning = false;
-                document.getElementById("btn-scan").innerText = "📷 Ativar Câmera";
+                document.getElementById("btn-scan").innerHTML = ICO.camOn + '<span>Ativar câmera</span>';
             });
         }
     }
@@ -478,9 +690,12 @@
     function alternarLanterna() {
         if (html5QrcodeScanner && isScanning) {
             isTorchOn = !isTorchOn;
+            document.getElementById("btn-torch").classList.toggle("on", isTorchOn);
             html5QrcodeScanner.applyVideoConstraints({
                 advanced: [{ torch: isTorchOn }]
             }).catch(() => {
+                isTorchOn = false;
+                document.getElementById("btn-torch").classList.remove("on");
                 showStatus("Lanterna não suportada neste dispositivo.", "warning");
             });
         }
@@ -494,7 +709,7 @@
 
             document.getElementById("chaveAcesso").value = cleanText;
             stopScanner();
-            showStatus("✅ Chave lida com sucesso!", "success");
+            showStatus("Chave lida com sucesso!", "success");
         }
     }
 
@@ -518,7 +733,7 @@
 
         if (!navigator.onLine) {
             salvarFilaOffline(chaveVal, operadorAtual);
-            showStatus("⚠️ Registro salvo offline. Será transmitido assim que houver conexão.", "warning");
+            showStatus("Registro salvo offline. Será transmitido assim que houver conexão.", "warning");
             document.getElementById("chaveAcesso").value = "";
             setLoading(false);
             startScanner();
@@ -527,12 +742,12 @@
 
         try {
             await requisitarEnvio(chaveVal, operadorAtual);
-            showStatus("✅ Registrado com sucesso!", "success");
+            showStatus("Registrado com sucesso!", "success");
             document.getElementById("chaveAcesso").value = "";
             startScanner();
         } catch (err) {
             salvarFilaOffline(chaveVal, operadorAtual);
-            showStatus("⚠️ Erro na rede. Registro salvo offline para envio automático.", "warning");
+            showStatus("Erro na rede. Registro salvo offline para envio automático.", "warning");
             document.getElementById("chaveAcesso").value = "";
             startScanner();
         } finally {
@@ -563,7 +778,7 @@
         const fila = JSON.parse(localStorage.getItem('nfe_pendentes') || '[]');
         if (fila.length === 0) return;
 
-        showStatus(`Sincronizando ${fila.length} registro(s) offline...`, "warning");
+        showStatus(`Sincronizando ${fila.length} registro(s) offline…`, "warning");
 
         const naoEnviados = [];
         for (const item of fila) {
@@ -577,9 +792,9 @@
         localStorage.setItem('nfe_pendentes', JSON.stringify(naoEnviados));
 
         if (naoEnviados.length === 0) {
-            showStatus("✅ Todos os registros offline foram sincronizados!", "success");
+            showStatus("Todos os registros offline foram sincronizados!", "success");
         } else {
-            showStatus(`⚠️ Restam ${naoEnviados.length} registro(s) pendentes.`, "warning");
+            showStatus(`Restam ${naoEnviados.length} registro(s) pendentes.`, "warning");
         }
     }
 
@@ -588,18 +803,18 @@
         const btnText = document.getElementById("btnText");
         btnSubmit.disabled = isLoading;
         if (isLoading) {
-            btnText.innerHTML = '<span class="spinner"></span> Salvando...';
+            btnText.innerHTML = '<span class="spinner"></span><span>Salvando…</span>';
         } else {
-            btnText.innerHTML = '💾 Gravar Registro';
+            btnText.innerHTML = ICO.save + '<span>Gravar registro</span>';
         }
     }
 
     function showStatus(msg, type) {
         const el = document.getElementById("statusMsg");
-        el.innerText = msg;
-        el.className = "status-msg status-" + type;
-        el.style.display = "block";
-        setTimeout(() => { el.style.display = "none"; }, 4000);
+        el.innerHTML = (STATUS_ICON[type] || '') + '<span>' + msg + '</span>';
+        el.className = "status-msg status-" + type + " visible";
+        clearTimeout(el._t);
+        el._t = setTimeout(() => { el.classList.remove("visible"); }, 4000);
     }
 
     function prepararAudio() {
@@ -623,6 +838,71 @@
             oscilador.stop(audioCtx.currentTime + 0.15);
         } catch (e) {}
     }
+
+    /* ===== Instalação do PWA (Baixar app) ===== */
+    let deferredPrompt = null;
+    const btnInstall = document.getElementById('btnInstall');
+
+    const isStandalone = () =>
+        window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+    if (isStandalone()) {
+        btnInstall.classList.add('hidden'); // já instalado
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (!isStandalone()) btnInstall.classList.remove('hidden');
+    });
+
+    window.addEventListener('appinstalled', () => {
+        deferredPrompt = null;
+        btnInstall.classList.add('hidden');
+    });
+
+    btnInstall.addEventListener('click', async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            try {
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') btnInstall.classList.add('hidden');
+            } catch (e) {}
+            deferredPrompt = null;
+        } else {
+            abrirInstallModal();
+        }
+    });
+
+    function abrirInstallModal() {
+        const body = document.getElementById('installHelpBody');
+        const ua = navigator.userAgent || '';
+        const isIOS = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+        if (isIOS) {
+            body.innerHTML = 'Para instalar no iPhone/iPad, use o <b>Safari</b>:'
+                + '<ol><li>Toque no botão <b>Compartilhar</b> (ícone de caixa com seta ↑).</li>'
+                + '<li>Escolha <b>Adicionar à Tela de Início</b>.</li>'
+                + '<li>Confirme em <b>Adicionar</b>.</li></ol>';
+        } else {
+            body.innerHTML = 'Para instalar no celular (Android/Chrome):'
+                + '<ol><li>Abra o menu <b>⋮</b> do navegador.</li>'
+                + '<li>Toque em <b>Instalar aplicativo</b> ou <b>Adicionar à tela inicial</b>.</li>'
+                + '<li>Confirme a instalação.</li></ol>';
+        }
+        document.getElementById('installModal').classList.remove('hidden');
+    }
+
+    function fecharInstallModal() {
+        document.getElementById('installModal').classList.add('hidden');
+    }
+
+    document.getElementById('installModal').addEventListener('click', (e) => {
+        if (e.target.id === 'installModal') fecharInstallModal();
+    });
+
+    /* ===== Botão Sair (cabeçalho) ===== */
+    document.getElementById('btnSair').addEventListener('click', voltarParaEtapa1);
 
     // Registro do Service Worker (arquivo real ./sw.js) para funcionamento offline
     if ('serviceWorker' in navigator) {
